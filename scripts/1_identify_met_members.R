@@ -12,15 +12,177 @@
 # The file path to where our ensembel is stored
 path.dat <- "~/Desktop/Research/met_ensembles/data/met_ensembles/HARVARD/"
 path.out <- "../data/"
+path.google <- "~/Google Drive/PalEON_Met_Ensembles/"
 
-# Read in the monthly summary data
+# List of top 10 ensemble members by year from Tipton
+top.ens <- read.csv(file.path(path.google, "data", "top-ten-ensembles.csv"), row.names=1, stringsAsFactors = F)
+# names(top.ens) <- paste0("Rank", 1:ncol(top.ens))
+ens.vec <- stack(top.ens[,1:ncol(top.ens)])
+names(ens.vec) <- c("ens.mem", "rank")
+ens.vec$ens.mem <- as.factor(ens.vec$ens.mem)
+ens.sum <- summary(ens.vec$ens.mem)
+
+# Putting everyting 
+mem.top <- data.frame(ensID=names(ens.sum), n=ens.sum)
+mem.top$GCM <- as.factor(unlist(lapply(stringr::str_split(mem.top$ensID, "_"), function(x) x[1])))
+mem.top$hrID <- as.factor(unlist(lapply(stringr::str_split(mem.top$ensID, "_"), function(x) x[2])))
+mem.top$ensDay <- as.factor(unlist(lapply(stringr::str_split(mem.top$hrID, "[.]"), function(x) x[1])))
+mem.top$ensHr <- as.factor(unlist(lapply(stringr::str_split(mem.top$hrID, "[.]"), function(x) x[2])))
+mem.top$dayID <- as.factor(paste(mem.top$GCM, mem.top$ensDay, sep="_"))
+
+# Pick the top 25 hourly ensemble members
+mem.top <- mem.top[mem.top$n>=quantile(mem.top$n, 1-25/nrow(mem.top)),]
+mem.top <- mem.top[order(mem.top$n, decreasing=T),]
+dim(mem.top)
+summary(mem.top$dayID)
+summary(mem.top)
+
+write.csv(mem.top, file.path(path.google, "data", "EnsembleMembers_Harvard_top25.csv"), row.names=F)
+# -------------------------------------------
+
+
+# -------------------------------------------
+# Visualzing the spread in our top 25 ensemble at different time scales
+# -------------------------------------------
+yrs.plot <- c(2015, 1950, 1850, 850)
+
+# ------------
+# Looking at monthly data
+# ------------
+# Read in and subset the monthly data
 pdsi.mo   <- read.csv(file.path(path.dat, "aggregated/month", "PDSI_AllMembers.csv"), row.names=1)
 temp.mo   <- read.csv(file.path(path.dat, "aggregated/month", "Temperature_AllMembers.csv"), row.names=1)
 precip.mo <- read.csv(file.path(path.dat, "aggregated/month", "Precipitation_AllMembers.csv"), row.names=1)
 
-n.mems <- ncol(pdsi.mo) # Current ensemble member size
-names(pdsi.mo)[1:10]
+pdsi.mo   <- pdsi.mo[,names(pdsi.mo) %in% mem.top$ensID]
+temp.mo   <- temp.mo[,names(temp.mo) %in% mem.top$ensID]
+precip.mo <- precip.mo[,names(precip.mo) %in% mem.top$ensID]
 
-GCMs <- unique(unlist(lapply(stringr::str_split(names(pdsi.mo), "_"), function(x) x[1])))
+
+# Stack monthly data for plotting
+mo.time <- data.frame(year=rep(850:2015, each=12), mo=1:12)
+head(mo.time)
+
+met.mo <- data.frame(year=rep(yrs.plot, each=12*ncol(pdsi.mo)), month=1:12, ensID=rep(rep(names(pdsi.mo), each=12), length(yrs.plot)))
+for(yr in yrs.plot){
+  met.mo[met.mo$year==yr, "pdsi"  ] <- stack(pdsi.mo[which(mo.time$year==yr),])[,1]
+  met.mo[met.mo$year==yr, "temp"  ] <- (stack(temp.mo[which(mo.time$year==yr),])[,1] - 32) * 5/9 # Convert F to C
+  met.mo[met.mo$year==yr, "precip"] <- stack(precip.mo[which(mo.time$year==yr),])[,1] * 25.4 # Convert in to mm
+}
+summary(met.mo)
+
+# Merge in some of the metadata
+met.mo <- merge(met.mo, mem.top[,c("ensID", "GCM", "dayID", "ensDay")])
+summary(met.mo)
+
+library(ggplot2)
+pdf(file.path(path.google, "figures", "EnsembleMembers_Harvard_top25_Met_Month.pdf"))
+print(
+  ggplot(data=met.mo) +
+    facet_wrap(~year) +
+    geom_line(aes(x=month, y=temp, color=GCM, group=ensID)) +
+    scale_x_continuous(expand=c(0,0), name="Month") +
+    labs(y="Air Temperature (C)", title="Air Temperature") +
+    theme_bw()
+)
+
+print(
+  ggplot(data=met.mo) +
+    facet_wrap(~year) +
+    geom_line(aes(x=month, y=precip, color=GCM, group=ensID)) +
+    scale_x_continuous(expand=c(0,0), name="Month") +
+    labs(y="Total Precipitation (mm)", title="Total Precipitation") +
+    theme_bw()
+)
+
+print(
+  ggplot(data=met.mo) +
+    facet_wrap(~year) +
+    geom_line(aes(x=month, y=pdsi, color=GCM, group=ensID)) +
+    scale_x_continuous(expand=c(0,0), name="Month") +
+    labs(y="PDSI", title="PDSI") +
+    theme_bw()
+)
+dev.off()
+# ------------
+
+
+# ------------
+# Looking at hourly data
+# ------------
+days.plot <- seq(360/4/2, 360, by=360/4)
+seasons.plot <- c("Winter", "Spring", "Summer", "Fall")
+# Change . to - in IDs
+mem.top$ensID <- gsub("bcc.csm1.1", "bcc-csm1-1", mem.top$ensID)
+mem.top$ensID <- gsub("MPI.ESM.P", "MPI-ESM-P", mem.top$ensID)
+mem.top$ensID <- gsub("MIROC.ESM", "MIROC-ESM", mem.top$ensID)
+
+mem.top$GCM <- gsub("bcc.csm1.1", "bcc-csm1-1", mem.top$GCM)
+mem.top$GCM <- gsub("MPI.ESM.P", "MPI-ESM-P", mem.top$GCM)
+mem.top$GCM <- gsub("MIROC.ESM", "MIROC-ESM", mem.top$GCM)
+
+# Pull hourly data for 3 days at each slice for each model in each year
+# met.hr <- data.frame(GCM=rep(mem.top$GCM, each=length(yrs.plot)*length(days.plot)*3), 
+#                      ensID=rep(mem.top$ensID, each=length(yrs.plot)*length(days.plot)*3),
+#                      yr=rep(rep(yrs.plot, each=length(days.plot)*3), nrow(mem.top)),
+#                      air_temperature)
+met.hr <- NULL
+for(i in 1:nrow(mem.top)){
+  for(yr in yrs.plot){
+    ncT <- ncdf4::nc_open(file.path(path.dat, "1hr/ensembles", mem.top$GCM[i], mem.top$ensID[i], paste(mem.top$ensID[i], yr, "nc", sep=".")))
+    
+    for(d in 1:length(days.plot)){
+      dat.temp <- data.frame(GCM=mem.top$GCM[i], ensID=mem.top$ensID[i], year=yr, doy=rep((days.plot[d]-1):(days.plot[d]+1), each=24), hour=1:24,
+                             season=seasons.plot[d])
+      for(v in names(ncT$var)){
+        dat.temp[,v] <- ncdf4::ncvar_get(ncT, v, start=c(1,1,(days.plot[d]-1)*24), count=c(1,1,3*24))
+      } # End variable loop
+      
+      if(is.null(met.hr)){
+        met.hr <- dat.temp
+      } else {
+        met.hr <- rbind(met.hr, dat.temp)
+      }
+    } # End Day loop
+    ncdf4::nc_close(ncT)
+  } # End year loop
+  
+} # End ensemble loop
+summary(met.hr)
+
+met.hr$date <- strptime(paste0(met.hr$year, "-", met.hr$doy, " ", met.hr$hour-1), format="%Y-%j %H")
+met.hr$day2 <- met.hr$doy+(met.hr$hour-0.5)/24
+summary(met.hr)
+
+
+pdf(file.path(path.google, "figures", "EnsembleMembers_Harvard_top25_Met_Hour.pdf"))
+print(
+ggplot(data=met.hr) +
+  facet_grid(year~season, scales="free") +
+  geom_line(aes(x=day2, y=air_temperature-273.15, color=GCM, group=ensID)) +
+  scale_x_continuous(expand=c(0,0), name="Day") +
+  labs(y="Air Temperature (C)", title="Air Temperature") +
+  theme_bw()
+)
+print(
+ggplot(data=met.hr) +
+  facet_grid(year~season, scales="free") +
+  geom_line(aes(x=day2, y=precipitation_flux, color=GCM, group=ensID)) +
+  scale_x_continuous(expand=c(0,0), name="Day") +
+  labs(y="Precipitation (kg/m2/s)", title="Precipitation") +
+  theme_bw()
+)
+print(
+ggplot(data=met.hr) +
+  facet_grid(year~season, scales="free") +
+  geom_line(aes(x=day2, y=surface_downwelling_shortwave_flux_in_air, color=GCM, group=ensID)) +
+  scale_x_continuous(expand=c(0,0), name="Day") +
+  labs(y="Shortwave Radiation (w/m2)", title="Shortwave Radiation") +
+  theme_bw()
+)
+dev.off()
+
+# ------------
 
 # -------------------------------------------
+
