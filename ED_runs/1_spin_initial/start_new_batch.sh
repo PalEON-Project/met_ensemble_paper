@@ -1,5 +1,5 @@
 #!bin/bash
-# This file starts the next cells from the PalEON Regional ED Runs
+# This file starts the next ensemble member for looking at the influence of driver uncertainty
 # Christy Rollinson, crollinson@gmail.com
 
 # Things to specify
@@ -34,13 +34,13 @@
 BU_base_spin=/projectnb/dietzelab/paleon/ED_runs/MIP2_Region # The base original file paths in all of my scripts
 BU_base_EDI=/projectnb/dietzelab/EDI/ # The location of basic ED Inputs on the BU server
 
-file_base=/home/crollinson/ED_PalEON/MIP2_Region # whatever you want the base output file path to be
+file_base=/home/crollinson/met_ensemble_paper/ED_runs # whatever you want the base output file path to be
 EDI_base=/home/crollinson/ED_inputs/ # The location of basic ED Inputs for you
 
 ed_exec=/home/crollinson/ED2/ED/build/ed_2.1-opt # Location of the ED Executable
-file_dir=${file_base}/1_spin_initial/phase2_spininit.v1/ # Where everything will go
+file_dir=${file_base}/1_spin_initial/MetEns_spininit.v1/ # Where everything will go
 setup_dir=${file_base}/0_setup/ # Where some constant setup files are
-site_file=${setup_dir}/Paleon_MIP_Phase2_ED_Order_Status.csv # # Path to list of ED sites w/ status
+ens_file=${setup_dir}/Ensemble_Order.csv # # Path to list of ED sites w/ status
 
 # # Lets double check and make sure the order status file is up to date
 # # Note: need to make sure you don't have to enter a password for this to work right
@@ -51,9 +51,13 @@ file_clay=/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/soil/pale
 file_sand=/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/soil/paleon_soil_t_sand.nc # Location of percent sand file
 file_depth=/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/soil/paleon_soil_soil_depth.nc # Location of soil depth file
 
-finalyear=2851
+finalyear=2856
 finalfull=2850
 n=1
+
+# Specify a set lat/lon since we're not varying that
+lat_now=42.5
+lon_now=-72.18
 
 # Make sure the file paths on the Met Header have been updated for the current file structure
 sed -i "s,$BU_base_spin,$file_base,g" ${file_base}/0_setup/PL_MET_HEADER
@@ -62,21 +66,18 @@ sed -i "s,$BU_base_spin,$file_base,g" ${file_base}/0_setup/PL_MET_HEADER
 mkdir -p $file_dir
 
 # Extract the file names of sites that haven't been started yet
-sites_done=($(awk -F ',' 'NR>1 && $6!="" {print $4}' ${site_file})) # Get sites that have a location
-cells=($(awk -F ',' 'NR>1 && $6=="" {print $4}' ${site_file}))
-lat=($(awk -F ',' 'NR>1 && $6=="" {print $3}' ${site_file}))
-lon=($(awk -F ',' 'NR>1 && $6=="" {print $2}' ${site_file}))
+ens_done=($(awk -F ',' 'NR>1 && $4!="" {print $3}' ${ens_file})) # Get sites that have a location
+ens=($(awk -F ',' 'NR>1 && $4=="" {print $3}' ${ens_file}))
+#lat=($(awk -F ',' 'NR>1 && $6=="" {print $3}' ${site_file}))
+#lon=($(awk -F ',' 'NR>1 && $6=="" {print $2}' ${site_file}))
 
 
 # for FILE in $(seq 0 (($n-1)))
 for ((FILE=0; FILE<$n; FILE++)) # This is a way of doing it so that we don't have to modify N
 do
 	# Site Name and Lat/Lon
-	SITE=${cells[FILE]}
+	SITE=${ens[FILE]}
 	echo $SITE
-
-	lat_now=${lat[FILE]}
-	lon_now=${lon[FILE]}
 
 	# -----------------------------------------------------------------------------
 	# Extracting and setting soil  parameters
@@ -109,6 +110,12 @@ do
 	clay=$(ncdump clay_temp.nc |awk '/t_clay =/ {nextline=NR+1}{if(NR==nextline){print $1}}')
 	sand=$(ncdump sand_temp.nc |awk '/t_sand =/ {nextline=NR+1}{if(NR==nextline){print $1}}')
 	depth=$(ncdump depth_temp.nc |awk '/soil_depth =/ {nextline=NR+1}{if(NR==nextline){print $1}}')
+
+	# 2b) For some reason the comma is showing up, so lets get rid of it
+	clay=${clay::-1}
+	sand=${sand::-1}
+	depth=${depth::-1}
+	
 
 	# 3) convert percentages into fraction; cm to m
 	clay=$(bc<<<"$clay*0.01")

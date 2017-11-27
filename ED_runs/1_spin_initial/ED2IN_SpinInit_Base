@@ -303,8 +303,8 @@ $ED_NL
    ! FFILOUT -- Path and prefix for analysis files (all but history/restart).              !
    ! SFILOUT -- Path and prefix for history files.                                         !
    !---------------------------------------------------------------------------------------!
-   NL%FFILOUT = '/projectnb/dietzelab/paleon/ED_runs/MIP2_Region/1_spin_initial/phase2_spininit.v1/TEST/analy/TEST'
-   NL%SFILOUT = '/projectnb/dietzelab/paleon/ED_runs/MIP2_Region/1_spin_initial/phase2_spininit.v1/TEST/histo/TEST'
+   NL%FFILOUT = '/projectnb/dietzelab/paleon/ED_runs/MIP2_Region/1_spin_initial/MetEns_spininit.v1/TEST/analy/TEST'
+   NL%SFILOUT = '/projectnb/dietzelab/paleon/ED_runs/MIP2_Region/1_spin_initial/MetEns_spininit.v1/TEST/histo/TEST'
    !---------------------------------------------------------------------------------------!
 
 
@@ -383,7 +383,7 @@ $ED_NL
    !              path+prefix will be used, as the history for every grid must have come   !
    !              from the same simulation.                                                !
    !---------------------------------------------------------------------------------------!
-   NL%SFILIN   = '/projectnb/dietzelab/paleon/ED_runs/MIP2_Region/1_spin_initial/phase2_spininit.v1/TEST/histo/TEST'
+   NL%SFILIN   = '/projectnb/dietzelab/paleon/ED_runs/MIP2_Region/1_spin_initial/MetEns_spininit.v1/TEST/histo/TEST'
    !---------------------------------------------------------------------------------------!
 
 
@@ -1466,7 +1466,7 @@ $ED_NL
    !               simulation.                                                             !
    ! PHENPATH   -- path and prefix of the prescribed phenology data.                       !
    !---------------------------------------------------------------------------------------!
-   NL%IEDCNFGF   = 'PalEON_Phase2.v1.xml'
+   NL%IEDCNFGF   = 'PalEON_MetEns.v1.xml'
    NL%EVENT_FILE = ''
    !---------------------------------------------------------------------------------------!
 
