@@ -251,7 +251,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
       sely <- which(yr == y)
       for (m in unique(mo[sely])) {
         selm <- sely[which(mo[sely] == m)]
-        mout <- paste(met_folder, "/", y, month[m], ".h5", sep = "")
+        mout <- paste(met_folder, "/", y+1000, month[m], ".h5", sep = "")
         if (file.exists(mout)) {
           if (overwrite == TRUE) {
             file.remove(mout)
