@@ -70,7 +70,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
   # get start/end year since inputs are specified on year basis
   start_year <- lubridate::year(start_date)
   end_year <- lubridate::year(end_date)
-  day_secs <- udunits2::ud.convert(1, "day", "seconds")
+  # day_secs <- udunits2::ud.convert(1, "day", "seconds")
 
   # CO2 is available as a single netcdf file elsewhere
   nc.co2 <- ncdf4::nc_open(path.co2)
