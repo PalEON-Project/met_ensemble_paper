@@ -1,0 +1,13 @@
+Order,GCM,EnsID,location,spininit,SAS,spinfinish,runs
+1,MIROC-ESM,,,,,,
+2,MIROC-ESM,,,,,,
+3,CCSM4,,,,,,
+4,CCSM4,,,,,,
+5,bcc-csm1-1,,,,,,
+6,bcc-csm1-1,,,,,,
+7,MPI-ESM-P,MPI-ESM-P_008.02,,,,,
+8,MPI-ESM-P,MPI-ESM-P_008.01,,,,,
+9,MIROC-ESM,,,,,,
+10,CCSM4,,,,,,
+11,bcc-csm1-1,,,,,,
+12,MPI-ESM-P,MPI-ESM-P_008.03,,,,,
