@@ -198,22 +198,22 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
       asec[rng] <- asec[rng] - asec[rng[1]]
       hr[rng]   <- tday*24
     }
-    # mo <- day2mo(yr, doy)
-    # if (length(yr) < length(sec)) {
-    #   rng <- (length(yr) + 1):length(sec)
-    #   if (!all(rng >= 0)) {
-    #     skip <- TRUE
-    #     warning(paste(year, "is not a complete year and will not be included"))
-    #     break
-    #   }
-    #   yr[rng]  <- rep(y + 1, length(rng))
-    #   doy[rng] <- rep(1:366, each = day_secs / dt)[1:length(rng)]
-    #   hr[rng]  <- rep(seq(0, length = day_secs / dt, by = dt / day_secs * 24), 366)[1:length(rng)]
-    # }
-    # if (skip) {
-    #   print("Skipping to next year")
-    #   next
-    # }
+    mo <- day2mo(yr, doy)
+    if (length(yr) < length(sec)) {
+      rng <- (length(yr) + 1):length(sec)
+      if (!all(rng >= 0)) {
+        skip <- TRUE
+        warning(paste(year, "is not a complete year and will not be included"))
+        break
+      }
+      yr[rng]  <- rep(y + 1, length(rng))
+      doy[rng] <- rep(1:366, each = day_secs / dt)[1:length(rng)]
+      hr[rng]  <- rep(seq(0, length = day_secs / dt, by = dt / day_secs * 24), 366)[1:length(rng)]
+    }
+    if (skip) {
+      print("Skipping to next year")
+      next
+    }
 
 
     ## calculate potential radiation in order to estimate diffuse/direct
