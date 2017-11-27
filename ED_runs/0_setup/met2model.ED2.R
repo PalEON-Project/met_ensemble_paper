@@ -32,7 +32,8 @@
 ##' @param verbose should the function be very verbose
 ##' @importFrom ncdf4 ncvar_get ncdim_def ncatt_get ncvar_add
 met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, lst = 0, lat = NA,
-                          lon = NA, overwrite = FALSE, verbose = FALSE, ...) {
+                          lon = NA, overwrite = FALSE, verbose = FALSE, 
+                          path.co2, ...) {
   overwrite <- as.logical(overwrite)
 
   # results are stored in folder prefix.start.end
@@ -71,10 +72,27 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
   end_year <- lubridate::year(end_date)
   day_secs <- udunits2::ud.convert(1, "day", "seconds")
 
+  # CO2 is available as a single netcdf file elsewhere
+  nc.co2 <- ncdf4::nc_open(path.co2)
+  co2.all <- ncdf4::ncvar_get(nc.co2)
+  ncdf4::nc_close(nc.co2)
+  
+  # Brute force adding CO2 for 2011-2015 from Scripps; accessed at https://www.co2.earth/monthly-co2 27 Nov, 2017
+  co2.all <- c(co2.all, 
+               391.30, 391.92, 392.45, 393.37, 394.28, 393.69, 392.60, 390.21, 389.00, 388.93, 390.24, 391.80, #2011
+               393.07, 393.35, 394.36, 396.43, 396.87, 395.88, 394.52, 392.54, 391.13, 391.01, 392.95, 394.34, #2012
+               395.61, 396.85, 397.26, 398.35, 399.98, 398.87, 397.37, 395.41, 393.39, 393.70, 395.19, 396.82, #2013
+               397.93, 398.10, 399.47, 401.33, 401.88, 401.31, 399.07, 397.21, 395.40, 395.65, 397.22, 398.79, #2014
+               399.85, 400.31, 401.51, 403.45, 404.11, 402.88, 401.60, 399.00, 397.50, 398.28, 400.24, 401.89 #2015
+               )
+  yrs.co2 <- rep(850:2015, each=12)
+  mos.co2 <- rep(1:12, length.out=length(co2.all))
+  
   ## loop over files
   for (year in start_year:end_year) {
-    ncfile <- file.path(in.path, paste(in.prefix, year, "nc", sep = "."))
+    ncfile <- file.path(in.path, paste(in.prefix, stringr::str_pad(year, 4, pad=0), "nc", sep = "."))
 
+    nday <- ifelse(lubridate::leap_year(year), 366, 365)
     ## extract file root name froot <- substr(files[i],1,28) print(c(i,froot))
 
     ## open netcdf
@@ -88,7 +106,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     if (is.na(lat)) {
       lat <- flat
     } else if (lat != flat) {
-      PEcAn.logger::logger.warn("Latitude does not match that of file", lat, "!=", flat)
+      warning("Latitude does not match that of file", lat, "!=", flat)
     }
 
     flon <- try(ncdf4::ncvar_get(nc, "longitude"), silent = TRUE)
@@ -98,7 +116,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     if (is.na(lon)) {
       lon <- flon
     } else if (lon != flon) {
-      PEcAn.logger::logger.warn("Longitude does not match that of file", lon, "!=", flon)
+      warning("Longitude does not match that of file", lon, "!=", flon)
     }
 
     ## determine GMT adjustment lst <- site$LST_shift[which(site$acro == froot)]
@@ -106,25 +124,34 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     ## extract variables
     lat  <- eval(parse(text = lat))
     lon  <- eval(parse(text = lon))
-    sec  <- nc$dim$time$vals
+    tday  <- nc$dim$time$vals
+    obs.day <- length(tday)/nday
+    dt <- 1/obs.day * 24/1 * 60/1 * 60/1 # 1/(obs/day) * hrs/day * min/hr * sec/hr) Observation time step in seconds
+    
+    # Convert the time to seconds
+    sec <- tday*24*60*60
+    
     Tair <- ncdf4::ncvar_get(nc, "air_temperature")
     Qair <- ncdf4::ncvar_get(nc, "specific_humidity")  #humidity (kg/kg)
-    U    <- ncdf4::ncvar_get(nc, "eastward_wind")
-    V    <- ncdf4::ncvar_get(nc, "northward_wind")
+    Wind    <- ncdf4::ncvar_get(nc, "wind_speed")
     Rain <- ncdf4::ncvar_get(nc, "precipitation_flux")
     pres <- ncdf4::ncvar_get(nc, "air_pressure")
     SW   <- ncdf4::ncvar_get(nc, "surface_downwelling_shortwave_flux_in_air")
     LW   <- ncdf4::ncvar_get(nc, "surface_downwelling_longwave_flux_in_air")
-    CO2  <- try(ncdf4::ncvar_get(nc, "mole_fraction_of_carbon_dioxide_in_air"), silent = TRUE)
-
-    useCO2 <- is.numeric(CO2)
-
-    ## convert time to seconds
-    sec <- udunits2::ud.convert(sec, unlist(strsplit(nc$dim$time$units, " "))[1], "seconds")
 
     ncdf4::nc_close(nc)
-
-    dt <- PEcAn.utils::seconds_in_year(year) / length(sec)
+    
+    # Dupe monthly CO2 into hourly CO2
+    CO2 <- vector()
+    for(i in 1:12){
+      co2.now <- rep(co2.all[which(yrs.co2==year & mos.co2==i)], lubridate::days_in_month(i)*obs.day)
+      CO2 <- c(CO2, co2.now)
+    }
+    
+    # if we need to add in leap year, add it to the end
+    if(length(CO2) < length(Tair)){
+      CO2 <- c(CO2, CO2[(length(CO2) - (length(Tair) - length(CO2)) +1 ):length(CO2)])
+    }
 
     toff <- -as.numeric(lst) * 3600 / dt
 
@@ -132,95 +159,89 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     slen <- length(SW)
     Tair <- c(rep(Tair[1], toff), Tair)[1:slen]
     Qair <- c(rep(Qair[1], toff), Qair)[1:slen]
-    U    <- c(rep(U[1], toff), U)[1:slen]
-    V    <- c(rep(V[1], toff), V)[1:slen]
+    Wind <- c(rep(Wind[1], toff), Wind)[1:slen]
     Rain <- c(rep(Rain[1], toff), Rain)[1:slen]
     pres <- c(rep(pres[1], toff), pres)[1:slen]
     SW   <- c(rep(SW[1], toff), SW)[1:slen]
     LW   <- c(rep(LW[1], toff), LW)[1:slen]
-    if (useCO2) {
-      CO2 <- c(rep(CO2[1], toff), CO2)[1:slen]
-    }
+    # if (useCO2) {
+    #   CO2 <- c(rep(CO2[1], toff), CO2)[1:slen]
+    # }
 
     ## build time variables (year, month, day of year)
     skip <- FALSE
-    nyr <- floor(udunits2::ud.convert(length(sec) * dt, "seconds", "years"))
+    # nyr <- floor(udunits2::ud.convert(length(sec) * dt, "seconds", "years"))
+    nyr  <- 1
     yr   <- NULL
     doy  <- NULL
     hr   <- NULL
     asec <- sec
     for (y in seq(year, year + nyr - 1)) {
-      diy <- PEcAn.utils::days_in_year(y)
-      ytmp <- rep(y, udunits2::ud.convert(diy / dt, "days", "seconds"))
-      dtmp <- rep(seq_len(diy), each = day_secs / dt)
+      diy <- nday
+      ytmp <- rep(y, slen)
+      # tday <- tday
       if (is.null(yr)) {
         yr  <- ytmp
-        doy <- dtmp
-        hr  <- rep(NA, length(dtmp))
+        doy <- tday
+        hr  <- rep(NA, length(tday))
       } else {
         yr  <- c(yr, ytmp)
-        doy <- c(doy, dtmp)
-        hr  <- c(hr, rep(NA, length(dtmp)))
+        doy <- c(doy, tday)
+        hr  <- c(hr, rep(NA, length(tday)))
       }
       rng <- length(doy) - length(ytmp):1 + 1
       if (!all(rng >= 0)) {
         skip <- TRUE
-        PEcAn.logger::logger.warn(paste(year, "is not a complete year and will not be included"))
+        warning(paste(year, "is not a complete year and will not be included"))
         break
       }
       asec[rng] <- asec[rng] - asec[rng[1]]
-      hr[rng]   <- (asec[rng] - (dtmp - 1) * day_secs) / day_secs * 24
+      hr[rng]   <- tday*24
     }
-    mo <- day2mo(yr, doy)
-    if (length(yr) < length(sec)) {
-      rng <- (length(yr) + 1):length(sec)
-      if (!all(rng >= 0)) {
-        skip <- TRUE
-        PEcAn.logger::logger.warn(paste(year, "is not a complete year and will not be included"))
-        break
-      }
-      yr[rng]  <- rep(y + 1, length(rng))
-      doy[rng] <- rep(1:366, each = day_secs / dt)[1:length(rng)]
-      hr[rng]  <- rep(seq(0, length = day_secs / dt, by = dt / day_secs * 24), 366)[1:length(rng)]
-    }
-    if (skip) {
-      print("Skipping to next year")
-      next
-    }
+    # mo <- day2mo(yr, doy)
+    # if (length(yr) < length(sec)) {
+    #   rng <- (length(yr) + 1):length(sec)
+    #   if (!all(rng >= 0)) {
+    #     skip <- TRUE
+    #     warning(paste(year, "is not a complete year and will not be included"))
+    #     break
+    #   }
+    #   yr[rng]  <- rep(y + 1, length(rng))
+    #   doy[rng] <- rep(1:366, each = day_secs / dt)[1:length(rng)]
+    #   hr[rng]  <- rep(seq(0, length = day_secs / dt, by = dt / day_secs * 24), 366)[1:length(rng)]
+    # }
+    # if (skip) {
+    #   print("Skipping to next year")
+    #   next
+    # }
 
 
     ## calculate potential radiation in order to estimate diffuse/direct
-    cosz <- PEcAn.data.atmosphere::cos_solar_zenith_angle(doy, lat, lon, dt, hr)
-
-    rpot <- 1366 * cosz
-    rpot <- rpot[1:length(SW)]
-
-    SW[rpot < SW] <- rpot[rpot < SW]  ## ensure radiation < max
-    ### this causes trouble at twilight bc of missmatch btw bin avergage and bin midpoint
-    frac <- SW/rpot
-    frac[frac > 0.9] <- 0.9  ## ensure some diffuse
-    frac[frac < 0] <- 0
-    frac[is.na(frac)] <- 0
-    frac[is.nan(frac)] <- 0
-    SWd <- SW * (1 - frac)  ## Diffuse portion of total short wave rad
+    # cosz <- PEcAn.data.atmosphere::cos_solar_zenith_angle(doy, lat, lon, dt, hr)
+    # 
+    # rpot <- 1366 * cosz
+    # rpot <- rpot[1:length(SW)]
+    # 
+    # SW[rpot < SW] <- rpot[rpot < SW]  ## ensure radiation < max
+    # ### this causes trouble at twilight bc of missmatch btw bin avergage and bin midpoint
+    # frac <- SW/rpot
+    # frac[frac > 0.9] <- 0.9  ## ensure some diffuse
+    # frac[frac < 0] <- 0
+    # frac[is.na(frac)] <- 0
+    # frac[is.nan(frac)] <- 0
+    # SWd <- SW * (1 - frac)  ## Diffuse portion of total short wave rad
 
     ### convert to ED2.1 hdf met variables
     n      <- length(Tair)
-    nbdsfA <- (SW - SWd) * 0.57  # near IR beam downward solar radiation [W/m2]
-    nddsfA <- SWd * 0.48  # near IR diffuse downward solar radiation [W/m2]
-    vbdsfA <- (SW - SWd) * 0.43  # visible beam downward solar radiation [W/m2]
-    vddsfA <- SWd * 0.52  # visible diffuse downward solar radiation [W/m2]
+    vbdsfA <- SW  # visible beam downward solar radiation [W/m2]
     prateA <- Rain  # precipitation rate [kg_H2O/m2/s]
     dlwrfA <- LW  # downward long wave radiation [W/m2]
     presA  <- pres  # pressure [Pa]
     hgtA   <- rep(50, n)  # geopotential height [m]
-    ugrdA  <- U  # zonal wind [m/s]
-    vgrdA  <- V  # meridional wind [m/s]
+    ugrdA  <- Wind  # zonal wind [m/s]
     shA    <- Qair  # specific humidity [kg_H2O/kg_air]
     tmpA   <- Tair  # temperature [K]
-    if (useCO2) {
-      co2A <- CO2 * 1e+06  # surface co2 concentration [ppm] converted from mole fraction [kg/kg]
-    }
+    co2A <- CO2  # surface co2 concentration [ppm] from drivers
 
     ## create directory if(system(paste('ls',froot),ignore.stderr=TRUE)>0)
     ## system(paste('mkdir',froot))
@@ -237,58 +258,49 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
             rhdf5::h5createFile(mout)
           }
           if (overwrite == FALSE) {
-            PEcAn.logger::logger.warn("The file already exists! Moving to next month!")
+            warning("The file already exists! Moving to next month!")
             next
           }
         } else {
           rhdf5::h5createFile(mout)
         }
         dims  <- c(length(selm), 1, 1)
-        nbdsf <- array(nbdsfA[selm], dim = dims)
-        nddsf <- array(nddsfA[selm], dim = dims)
         vbdsf <- array(vbdsfA[selm], dim = dims)
-        vddsf <- array(vddsfA[selm], dim = dims)
         prate <- array(prateA[selm], dim = dims)
         dlwrf <- array(dlwrfA[selm], dim = dims)
         pres  <- array(presA[selm], dim = dims)
         hgt   <- array(hgtA[selm], dim = dims)
         ugrd  <- array(ugrdA[selm], dim = dims)
-        vgrd  <- array(vgrdA[selm], dim = dims)
         sh    <- array(shA[selm], dim = dims)
         tmp   <- array(tmpA[selm], dim = dims)
-        if (useCO2) {
+        # if (useCO2) {
           co2 <- array(co2A[selm], dim = dims)
-        }
-        rhdf5::h5write.default(nbdsf, mout, "nbdsf")
-        rhdf5::h5write.default(nddsf, mout, "nddsf")
+        # }
         rhdf5::h5write.default(vbdsf, mout, "vbdsf")
-        rhdf5::h5write.default(vddsf, mout, "vddsf")
         rhdf5::h5write.default(prate, mout, "prate")
         rhdf5::h5write.default(dlwrf, mout, "dlwrf")
         rhdf5::h5write.default(pres, mout, "pres")
         rhdf5::h5write.default(hgt, mout, "hgt")
         rhdf5::h5write.default(ugrd, mout, "ugrd")
-        rhdf5::h5write.default(vgrd, mout, "vgrd")
         rhdf5::h5write.default(sh, mout, "sh")
         rhdf5::h5write.default(tmp, mout, "tmp")
-        if (useCO2) {
+        # if (useCO2) {
           rhdf5::h5write.default(co2, mout, "co2")
-        }
+        # }
       }
     }
 
     ## write DRIVER file
     sites <- 1
     metgrid <- c(1, 1, 1, 1, lon, lat)
-    metvar <- c("nbdsf", "nddsf", "vbdsf", "vddsf", "prate", "dlwrf",
-                "pres", "hgt", "ugrd", "vgrd", "sh", "tmp", "co2")
+    metvar <- c("vbdsf", "prate", "dlwrf", "pres", "hgt", "ugrd", "sh", "tmp", "co2")
     nmet <- length(metvar)
     metfrq <- rep(dt, nmet)
     metflag <- rep(1, nmet)
-    if (!useCO2) {
-      metflag[metvar == "co2"] <- 4
-      metfrq[metvar == "co2"] <- 380
-    }
+    # if (!useCO2) {
+      # metflag[metvar == "co2"] <- 4
+      # metfrq[metvar == "co2"] <- 380
+    # }
     write.table("header", met_header, row.names = FALSE, col.names = FALSE)
     write.table(sites, met_header, row.names = FALSE, col.names = FALSE, append = TRUE)
     write.table(met_folder, met_header, row.names = FALSE, col.names = FALSE, append = TRUE,
@@ -304,5 +316,5 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
   }  ### end loop over met files
 
   print("Done with met2model.ED2")
-  return(invisible(results))
+  # return(invisible(results))
 } # met2model.ED2
