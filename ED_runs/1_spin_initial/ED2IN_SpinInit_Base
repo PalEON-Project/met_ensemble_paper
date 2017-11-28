@@ -1558,7 +1558,7 @@ $ED_NL
    !            the CAS from leaf, sapwooda, sapwoodb, and root sources, proportionally to !
    !            biomass.                                                                   !
    !---------------------------------------------------------------------------------------!
-!   NL%STORAGE_RESP_SCHEME = 0
+   NL%STORAGE_RESP_SCHEME = 0
    !---------------------------------------------------------------------------------------!
 
 

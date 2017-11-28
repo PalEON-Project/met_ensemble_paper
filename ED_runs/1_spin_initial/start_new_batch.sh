@@ -36,6 +36,7 @@ BU_base_EDI=/projectnb/dietzelab/EDI/ # The location of basic ED Inputs on the B
 
 file_base=/home/crollinson/met_ensemble_paper/ED_runs # whatever you want the base output file path to be
 EDI_base=/home/crollinson/ED_inputs/ # The location of basic ED Inputs for you
+met_base=${file_base}/MetEnsemble_ED/ # The base location of where the met is stored
 
 ed_exec=/home/crollinson/ED2/ED/build/ed_2.1-opt # Location of the ED Executable
 file_dir=${file_base}/1_spin_initial/MetEns_spininit.v1/ # Where everything will go
@@ -196,7 +197,8 @@ do
 		# ED2IN Changes	    
 	    sed -i "s,$BU_base_spin,$file_base,g" ED2IN #change the baseline file path everywhere
 	    sed -i "s,$BU_base_EDI,$EDI_base,g" ED2IN #change the baseline file path for ED Inputs
-
+	    
+	    sed -i "s/NL%MET_DRIVER_DB = .*/NL%MET_DRIVER_DB = ${met_base}/${SITE}/ED_MET_DRIVER_HEADER" ED2IN
         sed -i "s/NL%IYEARZ   = .*/NL%IYEARZ   = $finalyear/" ED2IN # Set last year
 	    sed -i "s,$old_analy,$new_analy,g" ED2IN #change output paths
 	    sed -i "s,$old_histo,$new_histo,g" ED2IN #change output paths
