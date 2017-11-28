@@ -212,7 +212,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     hr   <- NULL
     asec <- sec
     for (y in seq(year, year + nyr - 1)) {
-      diy <- PEcAn.utils::days_in_year(y)
+      diy <- nday
       ytmp <- rep(y, udunits2::ud.convert(diy / dt, "days", "seconds"))
       dtmp <- rep(seq_len(diy), each = day_secs / dt)
       if (is.null(yr)) {
