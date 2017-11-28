@@ -177,6 +177,7 @@ do
     new_histo="'${file_dir}${SITE}/histo/${SITE}'"
     old_analy="'${file_dir}TEST/analy/TEST'"
     old_histo="'${file_dir}TEST/histo/TEST'"
+    met_header="'${met_base}${SITE}/ED_MET_DRIVER_HEADER'"
     newbase=${file_dir}/$SITE
     oldbase=${file_dir}/TEST
 	oldname=TESTinit
@@ -197,8 +198,8 @@ do
 		# ED2IN Changes	    
 	    sed -i "s,$BU_base_spin,$file_base,g" ED2IN #change the baseline file path everywhere
 	    sed -i "s,$BU_base_EDI,$EDI_base,g" ED2IN #change the baseline file path for ED Inputs
+        sed -i "s, NL%ED_MET_DRIVER_DB = .*, NL%ED_MET_DRIVER_DB = $met_header,g" ED2IN # Set last year
 	    
-	    sed -i "s/NL%MET_DRIVER_DB = .*/NL%MET_DRIVER_DB = ${met_base}/${SITE}/ED_MET_DRIVER_HEADER" ED2IN
         sed -i "s/NL%IYEARZ   = .*/NL%IYEARZ   = $finalyear/" ED2IN # Set last year
 	    sed -i "s,$old_analy,$new_analy,g" ED2IN #change output paths
 	    sed -i "s,$old_histo,$new_histo,g" ED2IN #change output paths
@@ -211,16 +212,16 @@ do
         sed -i "s/SLMSTR  =.*/SLMSTR = $SLMSTR/" ED2IN # set initial soil moisture
         sed -i "s/STGOFF  =.*/STGOFF = $STGOFF/" ED2IN # set initial soil temp offset
 
-		# submission script changes
-	    sed -i "s,/dummy/path,${file_path},g" paleon_ed2_smp_geo.sh #site=.*
-	    sed -i "s,TEST,${SITE},g" paleon_ed2_smp_geo.sh #change job name
-        sed -i "s/h_rt=.*/h_rt=40:00:00/" paleon_ed2_smp_geo.sh # Sets the run time around what we should need
+		# # submission script changes
+	    # sed -i "s,/dummy/path,${file_path},g" paleon_ed2_smp_geo.sh #site=.*
+	    # sed -i "s,TEST,${SITE},g" paleon_ed2_smp_geo.sh #change job name
+        # sed -i "s/h_rt=.*/h_rt=40:00:00/" paleon_ed2_smp_geo.sh # Sets the run time around what we should need
 
 		# spin spawn start changes -- 
 		# Note: spins require a different first script because they won't have any 
 		#       histo files to read
-		cp ${setup_dir}spawn_startloops_spinstart.sh .
-		cp ${setup_dir}sub_spawn_restarts_spinstart.sh .
+		cp ${setup_dir}/spawn_startloops_spinstart.sh .
+		cp ${setup_dir}/sub_spawn_restarts_spinstart.sh .
 		sed -i "s/USER=.*/USER=${USER}/" spawn_startloops_spinstart.sh
 		sed -i "s/SITE=.*/SITE=${SITE}/" spawn_startloops_spinstart.sh 		
 		sed -i "s/finalyear=.*/finalyear=${finalfull}/" spawn_startloops_spinstart.sh 		
@@ -231,8 +232,8 @@ do
         sed -i "s/h_rt=.*/h_rt=48:00:00/" sub_spawn_restarts_spinstart.sh # Sets the run time around what we should need
 
 		# spawn restarts changes
-		cp ${setup_dir}spawn_startloops.sh .
-		cp ${setup_dir}sub_spawn_restarts.sh .
+		cp ${setup_dir}/spawn_startloops.sh .
+		cp ${setup_dir}/sub_spawn_restarts.sh .
 		sed -i "s/USER=.*/USER=${USER}/" spawn_startloops.sh
 		sed -i "s/SITE=.*/SITE=${SITE}/" spawn_startloops.sh 		
 		sed -i "s/finalyear=.*/finalyear=${finalfull}/" spawn_startloops.sh 		
@@ -243,8 +244,8 @@ do
         sed -i "s/h_rt=.*/h_rt=48:00:00/" sub_spawn_restarts_spinstart.sh # Sets the run time around what we should need
 
 		# adjust integration step changes
-		cp ${setup_dir}adjust_integration_restart.sh .
-		cp ${setup_dir}sub_adjust_integration.sh .
+		cp ${setup_dir}/adjust_integration_restart.sh .
+		cp ${setup_dir}/sub_adjust_integration.sh .
 		sed -i "s/USER=.*/USER=${USER}/" adjust_integration_restart.sh
 		sed -i "s/SITE=.*/SITE=${SITE}/" adjust_integration_restart.sh 		
 	    sed -i "s,/dummy/path,${file_path},g" sub_adjust_integration.sh # set the file path

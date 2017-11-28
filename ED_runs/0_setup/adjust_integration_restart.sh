@@ -9,8 +9,8 @@
 USER=crolli # or whoever is in charge of this site
 SITE=latXXXlon-XXX # Site can be indexed off some file name
 finalyear=3011
-outdir=/home/crollinson/ED_PalEON/MIP2_Region/4_runs/phase2_runs.v1/
-site_path=${outdir}${SITE}/
+# outdir=/home/crollinson/met_ensemble_paper/ED_runs/4_runs/phase2_runs.v1/
+site_path=/dummy/path
 
 months=(01 02 03 04 05 06 07 08 09 10 11 12 01 02)
 
