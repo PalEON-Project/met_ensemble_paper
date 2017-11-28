@@ -33,7 +33,7 @@
 ##' @importFrom ncdf4 ncvar_get ncdim_def ncatt_get ncvar_add
 met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, lst = 0, lat = NA,
                           lon = NA, overwrite = FALSE, verbose = FALSE, 
-                          path.co2, ...) {
+                          path.co2, force.sanity=FALSE, ...) {
   
   # Additional funcitons from solar_angle.R
   equation_of_time <- function(doy) {
@@ -194,6 +194,11 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     # if (useCO2) {
       CO2 <- c(rep(CO2[1], toff), CO2)[1:slen]
     # }
+      
+    if(force.sanity){
+      LW[LW<40] <- 40
+      LW[LW>600] <- 600
+    }
 
     ## build time variables (year, month, day of year)
     skip <- FALSE
