@@ -199,8 +199,23 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     # }
       
     if(force.sanity){
+      SW[SW<0] <- 0
+      SW[SW>1500] <- 1500
       LW[LW<40] <- 40
       LW[LW>600] <- 600
+      Tair[Tair<184] <- 184
+      Tair[Tair>331] <- 331
+      Qair[Qair<1e-6] <- 1e-6
+      Qair[Qair>3.2e-2] <- 3.2e-2
+      CO2[CO2<100] <- 100
+      CO2[CO2>1100] <- 1100
+      pres[pres<45000] <- 45000
+      pres[pres>110000] <- 110000
+      Rain[Rain<0] <- 0
+      Rain[Rain>0.1111] <- 0.1111
+      Wind[Wind<0] <- 0
+      Wind[Wind>85] <- 85
+      
     }
 
     ## build time variables (year, month, day of year)
