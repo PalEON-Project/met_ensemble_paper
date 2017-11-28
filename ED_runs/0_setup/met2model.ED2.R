@@ -153,7 +153,10 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     lon  <- eval(parse(text = lon))
     tday  <- nc$dim$time$vals
     obs.day <- length(tday)/nday
-    dt <- 1/obs.day * 24/1 * 60/1 * 60/1 # 1/(obs/day) * hrs/day * min/hr * sec/hr) Observation time step in seconds
+    
+    dt <- nday*24*60*60 / length(sec)
+    # dt <- PEcAn.utils::seconds_in_year(year) / length(sec)
+    # dt <- 1/obs.day * 24/1 * 60/1 * 60/1 # 1/(obs/day) * hrs/day * min/hr * sec/hr) Observation time step in seconds
     
     # Convert the time to seconds
     sec <- tday*24*60*60
