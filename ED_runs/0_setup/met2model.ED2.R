@@ -152,7 +152,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     lat  <- eval(parse(text = lat))
     lon  <- eval(parse(text = lon))
     sec  <- nc$dim$time$vals
-    obs.day <- length(tday)/nday
+    obs.day <- length(sec)/nday
     ## convert time to seconds
     sec <- udunits2::ud.convert(sec, unlist(strsplit(nc$dim$time$units, " "))[1], "seconds")
     
@@ -212,17 +212,17 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     hr   <- NULL
     asec <- sec
     for (y in seq(year, year + nyr - 1)) {
-      diy <- nday
-      ytmp <- rep(y, slen)
+      diy <- PEcAn.utils::days_in_year(y)
+      ytmp <- rep(y, udunits2::ud.convert(diy / dt, "days", "seconds"))
       dtmp <- rep(seq_len(diy), each = day_secs / dt)
       if (is.null(yr)) {
         yr  <- ytmp
         doy <- dtmp
-        hr  <- rep(NA, length(tday))
+        hr  <- rep(NA, length(dtmp))
       } else {
         yr  <- c(yr, ytmp)
-        doy <- c(doy, tday)
-        hr  <- c(hr, rep(NA, length(tday)))
+        doy <- c(doy, dtmp)
+        hr  <- c(hr, rep(NA, length(dtmp)))
       }
       rng <- length(doy) - length(ytmp):1 + 1
       if (!all(rng >= 0)) {
@@ -231,7 +231,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
         break
       }
       asec[rng] <- asec[rng] - asec[rng[1]]
-      hr[rng]   <- tday*24
+      hr[rng]   <- (asec[rng] - (dtmp - 1) * day_secs) / day_secs * 24
     }
     mo <- day2mo(yr, doy)
     if (length(yr) < length(sec)) {
