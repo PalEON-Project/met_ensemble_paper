@@ -192,8 +192,8 @@ do
 		mkdir -p histo analy
 		ln -s $ed_exec
 		cp ../../ED2IN_SpinInit_Base ED2IN
-		cp ${setup_dir}PalEON_Phase2.v1.xml .
-		cp ${setup_dir}paleon_ed2_smp_geo.sh .
+		cp ${setup_dir}/PalEON_MetEns.v1.xml .
+		cp ${setup_dir}/paleon_ed2_smp_geo.sh .
 
 		# ED2IN Changes	    
 	    sed -i "s,$BU_base_spin,$file_base,g" ED2IN #change the baseline file path everywhere
