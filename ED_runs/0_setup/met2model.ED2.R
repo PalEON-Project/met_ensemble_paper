@@ -151,7 +151,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     ## extract variables
     lat  <- eval(parse(text = lat))
     lon  <- eval(parse(text = lon))
-    tday  <- nc$dim$time$vals
+    sec  <- nc$dim$time$vals
     obs.day <- length(tday)/nday
     ## convert time to seconds
     sec <- udunits2::ud.convert(sec, unlist(strsplit(nc$dim$time$units, " "))[1], "seconds")
@@ -205,7 +205,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
 
     ## build time variables (year, month, day of year)
     skip <- FALSE
-    nyr <- floor(udunits2::ud.convert(length(sec) * dt, "seconds", "years"))
+    nyr <- floor(udunits2::ud.convert(length(sec) * dt, "seconds", "days")/nday)
     # nyr  <- 0
     yr   <- NULL
     doy  <- NULL
