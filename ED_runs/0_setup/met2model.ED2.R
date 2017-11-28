@@ -34,6 +34,33 @@
 met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, lst = 0, lat = NA,
                           lon = NA, overwrite = FALSE, verbose = FALSE, 
                           path.co2, ...) {
+  
+  # Additional funcitons from solar_angle.R
+  equation_of_time <- function(doy) {
+    stopifnot(doy <= 366)
+    f      <- pi / 180 * (279.5 + 0.9856 * doy)
+    et     <- (-104.7 * sin(f) + 596.2 * sin(2 * f) + 4.3 *
+                 sin(4 * f) - 429.3 * cos(f) - 2 *
+                 cos(2 * f) + 19.3 * cos(3 * f)) / 3600  # equation of time -> eccentricity and obliquity
+    return(et)
+  }
+  
+  cos_solar_zenith_angle <- function(doy, lat, lon, dt, hr) {
+    et <- equation_of_time(doy)
+    merid  <- floor(lon / 15) * 15
+    merid[merid < 0] <- merid[merid < 0] + 15
+    lc     <- (lon - merid) * -4/60  ## longitude correction
+    tz     <- merid / 360 * 24  ## time zone
+    midbin <- 0.5 * dt / 86400 * 24  ## shift calc to middle of bin
+    t0   <- 12 + lc - et - tz - midbin  ## solar time
+    h    <- pi/12 * (hr - t0)  ## solar hour
+    dec  <- -23.45 * pi / 180 * cos(2 * pi * (doy + 10) / 365)  ## declination
+    cosz <- sin(lat * pi / 180) * sin(dec) + cos(lat * pi / 180) * cos(dec) * cos(h)
+    cosz[cosz < 0] <- 0
+    return(cosz)
+  }
+  
+  
   overwrite <- as.logical(overwrite)
 
   # results are stored in folder prefix.start.end
@@ -165,7 +192,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     SW   <- c(rep(SW[1], toff), SW)[1:slen]
     LW   <- c(rep(LW[1], toff), LW)[1:slen]
     # if (useCO2) {
-    #   CO2 <- c(rep(CO2[1], toff), CO2)[1:slen]
+      CO2 <- c(rep(CO2[1], toff), CO2)[1:slen]
     # }
 
     ## build time variables (year, month, day of year)
@@ -217,30 +244,37 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
 
 
     ## calculate potential radiation in order to estimate diffuse/direct
-    # cosz <- PEcAn.data.atmosphere::cos_solar_zenith_angle(doy, lat, lon, dt, hr)
-    # 
-    # rpot <- 1366 * cosz
-    # rpot <- rpot[1:length(SW)]
-    # 
-    # SW[rpot < SW] <- rpot[rpot < SW]  ## ensure radiation < max
-    # ### this causes trouble at twilight bc of missmatch btw bin avergage and bin midpoint
-    # frac <- SW/rpot
-    # frac[frac > 0.9] <- 0.9  ## ensure some diffuse
-    # frac[frac < 0] <- 0
-    # frac[is.na(frac)] <- 0
-    # frac[is.nan(frac)] <- 0
-    # SWd <- SW * (1 - frac)  ## Diffuse portion of total short wave rad
+    cosz <- cos_solar_zenith_angle(doy, lat, lon, dt, hr)
+
+    rpot <- 1366 * cosz
+    rpot <- rpot[1:length(SW)]
+
+    SW[rpot < SW] <- rpot[rpot < SW]  ## ensure radiation < max
+    ### this causes trouble at twilight bc of missmatch btw bin avergage and bin midpoint
+    frac <- SW/rpot
+    frac[frac > 0.9] <- 0.9  ## ensure some diffuse
+    frac[frac < 0] <- 0
+    frac[is.na(frac)] <- 0
+    frac[is.nan(frac)] <- 0
+    SWd <- SW * (1 - frac)  ## Diffuse portion of total short wave rad
 
     ### convert to ED2.1 hdf met variables
     n      <- length(Tair)
-    vbdsfA <- SW  # visible beam downward solar radiation [W/m2]
+    ### convert to ED2.1 hdf met variables
+    n      <- length(Tair)
+    nbdsfA <- (SW - SWd) * 0.57  # near IR beam downward solar radiation [W/m2]
+    nddsfA <- SWd * 0.48  # near IR diffuse downward solar radiation [W/m2]
+    vbdsfA <- (SW - SWd) * 0.43  # visible beam downward solar radiation [W/m2]
+    vddsfA <- SWd * 0.52  # visible diffuse downward solar radiation [W/m2]
     prateA <- Rain  # precipitation rate [kg_H2O/m2/s]
     dlwrfA <- LW  # downward long wave radiation [W/m2]
     presA  <- pres  # pressure [Pa]
     hgtA   <- rep(50, n)  # geopotential height [m]
     ugrdA  <- Wind  # zonal wind [m/s]
+    # vgrdA  <- V  # meridional wind [m/s]
     shA    <- Qair  # specific humidity [kg_H2O/kg_air]
     tmpA   <- Tair  # temperature [K]
+    
     co2A <- CO2  # surface co2 concentration [ppm] from drivers
 
     ## create directory if(system(paste('ls',froot),ignore.stderr=TRUE)>0)
@@ -265,7 +299,10 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
           rhdf5::h5createFile(mout)
         }
         dims  <- c(length(selm), 1, 1)
+        nbdsf <- array(nbdsfA[selm], dim = dims)
+        nddsf <- array(nddsfA[selm], dim = dims)
         vbdsf <- array(vbdsfA[selm], dim = dims)
+        vddsf <- array(vddsfA[selm], dim = dims)
         prate <- array(prateA[selm], dim = dims)
         dlwrf <- array(dlwrfA[selm], dim = dims)
         pres  <- array(presA[selm], dim = dims)
@@ -276,7 +313,10 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
         # if (useCO2) {
           co2 <- array(co2A[selm], dim = dims)
         # }
+        rhdf5::h5write.default(nbdsf, mout, "nbdsf")
+        rhdf5::h5write.default(nddsf, mout, "nddsf")
         rhdf5::h5write.default(vbdsf, mout, "vbdsf")
+        rhdf5::h5write.default(vddsf, mout, "vddsf")
         rhdf5::h5write.default(prate, mout, "prate")
         rhdf5::h5write.default(dlwrf, mout, "dlwrf")
         rhdf5::h5write.default(pres, mout, "pres")
@@ -293,7 +333,8 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     ## write DRIVER file
     sites <- 1
     metgrid <- c(1, 1, 1, 1, lon, lat)
-    metvar <- c("vbdsf", "prate", "dlwrf", "pres", "hgt", "ugrd", "sh", "tmp", "co2")
+    metvar <- c("nbdsf", "nddsf", "vbdsf", "vddsf", "prate", "dlwrf",
+                "pres", "hgt", "ugrd", "sh", "tmp", "co2")
     nmet <- length(metvar)
     metfrq <- rep(dt, nmet)
     metflag <- rep(1, nmet)
