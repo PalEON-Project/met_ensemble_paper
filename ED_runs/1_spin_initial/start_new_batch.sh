@@ -52,7 +52,7 @@ file_clay=/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/soil/pale
 file_sand=/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/soil/paleon_soil_t_sand.nc # Location of percent sand file
 file_depth=/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/soil/paleon_soil_soil_depth.nc # Location of soil depth file
 
-finalyear=2856
+finalyear=2851
 finalfull=2850
 n=1
 
