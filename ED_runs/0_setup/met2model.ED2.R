@@ -97,7 +97,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
   # get start/end year since inputs are specified on year basis
   start_year <- lubridate::year(start_date)
   end_year <- lubridate::year(end_date)
-  # day_secs <- udunits2::ud.convert(1, "day", "seconds")
+  day_secs <- udunits2::ud.convert(1, "day", "seconds")
 
   # CO2 is available as a single netcdf file elsewhere
   nc.co2 <- ncdf4::nc_open(path.co2)
@@ -153,13 +153,14 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     lon  <- eval(parse(text = lon))
     tday  <- nc$dim$time$vals
     obs.day <- length(tday)/nday
-    sec <- tday*24*60*60
+    ## convert time to seconds
+    sec <- udunits2::ud.convert(sec, unlist(strsplit(nc$dim$time$units, " "))[1], "seconds")
     
-    dt <- nday*24*60*60 / length(sec)
+    dt <- udunits2::ud.convert(nday, 'days', 'seconds') / length(sec)
+    toff <- -as.numeric(lst) * 3600 / dt
+    
     # dt <- PEcAn.utils::seconds_in_year(year) / length(sec)
     # dt <- 1/obs.day * 24/1 * 60/1 * 60/1 # 1/(obs/day) * hrs/day * min/hr * sec/hr) Observation time step in seconds
-    
-    # Convert the time to seconds
     
     Tair <- ncdf4::ncvar_get(nc, "air_temperature")
     Qair <- ncdf4::ncvar_get(nc, "specific_humidity")  #humidity (kg/kg)
@@ -183,7 +184,6 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
       CO2 <- c(CO2, CO2[(length(CO2) - (length(Tair) - length(CO2)) +1 ):length(CO2)])
     }
 
-    toff <- -as.numeric(lst) * 3600 / dt
 
     ## buffer to get to GMT
     slen <- length(SW)
@@ -205,8 +205,8 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
 
     ## build time variables (year, month, day of year)
     skip <- FALSE
-    # nyr <- floor(udunits2::ud.convert(length(sec) * dt, "seconds", "years"))
-    nyr  <- 1
+    nyr <- floor(udunits2::ud.convert(length(sec) * dt, "seconds", "years"))
+    # nyr  <- 0
     yr   <- NULL
     doy  <- NULL
     hr   <- NULL
@@ -214,10 +214,10 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     for (y in seq(year, year + nyr - 1)) {
       diy <- nday
       ytmp <- rep(y, slen)
-      # tday <- tday
+      dtmp <- rep(seq_len(diy), each = day_secs / dt)
       if (is.null(yr)) {
         yr  <- ytmp
-        doy <- tday
+        doy <- dtmp
         hr  <- rep(NA, length(tday))
       } else {
         yr  <- c(yr, ytmp)
