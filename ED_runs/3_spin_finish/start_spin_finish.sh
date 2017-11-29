@@ -23,12 +23,12 @@
 
 # Define constants & file paths for the scripts
 # Note: do not need to re
-file_base=/home/crollinson/ED_PalEON/MIP2_Region # whatever you want the base output file path to be
+file_base=/home/crollinson/met_ensemble_paper/ED_runs # whatever you want the base output file path to be
 
 ed_exec=/home/crollinson/ED2/ED/build/ed_2.1-opt # Location of the ED Executable
-init_dir=${file_base}/1_spin_initial/phase2_spininit.v1/ # Directory of initial spin files
+init_dir=${file_base}/1_spin_initial/MetEns_spininit.v1/ # Directory of initial spin files
 SAS_dir=${file_base}/2_SAS/SAS_init_files.v1/ # Directory of SAS initialization files
-finish_dir=${file_base}/3_spin_finish/phase2_spinfinish.v1/ # Where the transient runs will go
+finish_dir=${file_base}/3_spin_finish/MetEns_spinfinish.v1/ # Where the transient runs will go
 setup_dir=${file_base}/0_setup/
 
 finalyear=2351 # The year on which the models should top on Jan 1
@@ -76,12 +76,12 @@ do
 		mkdir -p histo analy
 		ln -s $ed_exec
 		cp ${init_dir}${SITE}/ED2IN .
-		cp ${init_dir}${SITE}/PalEON_Phase2.v1.xml .
+		cp ${init_dir}${SITE}/PalEON_MetEns.v1.xml .
 		cp ${init_dir}${SITE}/paleon_ed2_smp_geo.sh .
 
 		# ED2IN Changes	    
 	    sed -i "s,$init_dir,$finish_dir,g" ED2IN #change the baseline file path everywhere
-        sed -i "s/NL%EXPNME =.*/NL%EXPNME = 'PalEON Spin Finish'/" ED2IN # change the experiment name
+        sed -i "s/NL%EXPNME =.*/NL%EXPNME = 'Met Ensemble Spin Finish'/" ED2IN # change the experiment name
 		sed -i "s/NL%RUNTYPE  = .*/NL%RUNTYPE  = 'INITIAL'/" ED2IN # change from bare ground to .css/.pss run
         sed -i "s/NL%IYEARA   = .*/NL%IYEARA   = 1850/" ED2IN # Set first year
         sed -i "s/NL%IMONTHA  = .*/NL%IMONTHA  = 06/" ED2IN # Set first month

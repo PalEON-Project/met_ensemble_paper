@@ -112,8 +112,8 @@ sites    <- sites.init[!(sites.init %in% sites.SAS)] # sites that need the
 # Sites that have finished the spin initial
 spin.end <- 2850
 
-site.lat <- as.numeric(substr(sites,4,8)) # lat from SAS run
-site.lon <- as.numeric(substr(sites,12,17)) # insert site longitude(s) here
+site.lat <- 42.54 # lat from SAS run
+site.lon <- -72.18 # insert site longitude(s) here
 
 blckyr  <- 50 #number of years to chunk data by
 disturb <- 0.005 # the treefall disturbance rate you will prescribe in the actual runs (or close to it)
@@ -150,8 +150,10 @@ for(s in 1:length(sites)){
   ann.files  <- dir(dat.dir, "-Y-") #yearly files only  
 
   #Get time window
-  yeara  <- as.numeric(strsplit(ann.files,"-")[[1]][4]) #first year
-  yearz  <- as.numeric(strsplit(ann.files,"-")[[length(ann.files)]][4]) #last full year
+  file.split <- strsplit(ann.files,"-")[[1]]
+  yr.ind <- length(file.split)-4
+  yeara  <- as.numeric(strsplit(ann.files,"-")[[1]][yr.ind]) #first year
+  yearz  <- as.numeric(strsplit(ann.files,"-")[[length(ann.files)]][yr.ind]) #last full year
   yrs    <- seq(yeara+1, yearz, by=blckyr) # The years we're going to use as time steps for the demography
   nsteps <- length(yrs) # The number of blocks = the number steps we'll have
 
@@ -334,20 +336,20 @@ for(s in 1:length(sites)){
   mon.files  <- dir(dat.dir, "-S-") # monthly files only  
   
   #Get time window
-  yeara <- as.numeric(strsplit(mon.files,"-")[[1]][4]) #first year
-  yearz <- as.numeric(strsplit(mon.files,"-")[[length(mon.files)]][4]) #last year
+  yeara <- as.numeric(strsplit(mon.files,"-")[[1]][yr.ind]) #first year
+  yearz <- as.numeric(strsplit(mon.files,"-")[[length(mon.files)]][yr.ind]) #last year
 
-  montha <- as.numeric(strsplit(mon.files,"-")[[1]][5]) #first month
-  monthz <- as.numeric(strsplit(mon.files,"-")[[length(mon.files)]][5]) #last month
+  montha <- as.numeric(strsplit(mon.files,"-")[[1]][yr.ind+1]) #first month
+  monthz <- as.numeric(strsplit(mon.files,"-")[[length(mon.files)]][yr.ind+1]) #last month
   
   for (y in yrs){      
       #calculate month start/end based on year 
-      if (y == yrs[1]){
+      if (y == yeara){
         month.begin = montha
       }else{
         month.begin = 1
       }
-      if (y == yrs[length(yrs)]){
+      if (y == yearz){
         month.end = monthz
       }else{
         month.end = 12
