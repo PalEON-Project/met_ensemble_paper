@@ -248,6 +248,7 @@ do
 		cp ${setup_dir}/sub_adjust_integration.sh .
 		sed -i "s/USER=.*/USER=${USER}/" adjust_integration_restart.sh
 		sed -i "s/SITE=.*/SITE=${SITE}/" adjust_integration_restart.sh 		
+	    sed -i "s,/dummy/path,${file_path},g" adjust_integration_restart.sh # set the file path
 	    sed -i "s,/dummy/path,${file_path},g" sub_adjust_integration.sh # set the file path
 	    sed -i "s,TEST,adjust_${SITE},g" sub_adjust_integration.sh # change job name
         sed -i "s/h_rt=.*/h_rt=24:00:00/" sub_adjust_integration.sh # Sets the run time around what we should need
