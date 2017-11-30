@@ -539,10 +539,10 @@ for(s in 1:length(sites)){
   #---------------------------------------
   # Write everything to file!!
   #---------------------------------------
-  write.table(css.big,file=paste(out,sites[s],".css",sep=""),row.names=FALSE,append=FALSE,
+  write.table(css.big,file=paste(out,paste0(sites[s], "lat", site.lat, "lon", site.lon),".css",sep=""),row.names=FALSE,append=FALSE,
             col.names=TRUE,quote=FALSE)
 
-  write.table(pss.big,file=paste(out,sites[s],".pss",sep=""),row.names=FALSE,append=FALSE,
+  write.table(pss.big,file=paste(out,paste0(sites[s], "lat", site.lat, "lon", site.lon),".pss",sep=""),row.names=FALSE,append=FALSE,
             col.names=TRUE,quote=FALSE)
   #---------------------------------------
 } # End Site Loop!

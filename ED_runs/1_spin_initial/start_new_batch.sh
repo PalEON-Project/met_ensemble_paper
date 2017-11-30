@@ -57,7 +57,7 @@ finalfull=2850
 n=1
 
 # Specify a set lat/lon since we're not varying that
-lat_now=42.5
+lat_now=42.54
 lon_now=-72.18
 
 # Make sure the file paths on the Met Header have been updated for the current file structure
