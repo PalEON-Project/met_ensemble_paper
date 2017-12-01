@@ -5,7 +5,7 @@ ens.list <- read.csv(file = "Ensemble_Order.csv", na.strings="")
 ens.list
 # summary(ens.list)
 
-raw.base <- "/home/crollinson/met_ensemble/data/met_ensembles/HARVARD/1hr/ensembles"
+raw.base <- "/home/crollinson/met_ensemble/data/met_ensembles/HARVARD.v5/1hr/ensembles"
 out.base <- "/home/crollinson/met_ensemble_paper/ED_runs/MetEnsemble_ED"
 
 if(!dir.exists(out.base)) dir.create(out.base, recursive = T, showWarnings = F)
@@ -19,7 +19,7 @@ for(i in 1:nrow(ens.list)){
                 start_date="0850-01-01", end_date="0875-12-31", lst = 0, 
                 lat = NA, lon = NA, overwrite = F, verbose = FALSE,
                 path.co2="/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/co2/paleon_monthly_co2.nc",
-                force.sanity=TRUE)
+                force.sanity=TRUE, freq.agg=NULL)
   
 }
   
