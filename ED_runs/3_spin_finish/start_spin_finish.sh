@@ -35,19 +35,19 @@ finalyear=2351 # The year on which the models should top on Jan 1
 finalfull=2350 # The last year we actually care about (probably the year before finalyear)
 finalinit=2851
 
-n=3
+n=1
 
 # Making the file directory if it doesn't already exist
 mkdir -p $finish_dir
 
 # Get the list of what grid cells have already finished spinups
 pushd $finish_dir
-	file_done=(lat*)
+	file_done=(*)
 popd
 
 # Get the list of what grid cells have SAS solutions
 pushd $SAS_dir
-	cells=(lat*)
+	cells=(*)
 popd
 
 
@@ -55,10 +55,10 @@ popd
 # not skipping any sites
 # NOTE: NEED TO COMMENT THIS PART OUT FIRST TIME THROUGH 
 #       because it doesn't like no matches in file_done
-for REMOVE in ${file_done[@]}
-do 
-	cells=(${cells[@]/$REMOVE/})
-done
+#for REMOVE in ${file_done[@]}
+#do 
+#	cells=(${cells[@]/$REMOVE/})
+#done
 
 
 for ((FILE=0; FILE<$n; FILE++)) # This is a way of doing it so that we don't have to modify N
