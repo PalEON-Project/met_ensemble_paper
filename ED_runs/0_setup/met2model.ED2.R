@@ -30,10 +30,14 @@
 ##' @param lst timezone offset to GMT in hours
 ##' @param overwrite should existing files be overwritten
 ##' @param verbose should the function be very verbose
+##' @param path.co2 file path to where the CO2 driver is housed
+##' @param force.sanity (logical) do we force the met to pass ED sanity checks?
+##' @param freq.agg the number of observations per day we want; if NULL data will remain in native resolution
 ##' @importFrom ncdf4 ncvar_get ncdim_def ncatt_get ncvar_add
 met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, lst = 0, lat = NA,
                           lon = NA, overwrite = FALSE, verbose = FALSE, 
-                          path.co2, force.sanity=FALSE, ...) {
+                          path.co2, force.sanity=FALSE,
+                          freq.agg=NULL, ...) {
   
   # Additional funcitons from solar_angle.R
   equation_of_time <- function(doy) {
@@ -197,6 +201,29 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     # if (useCO2) {
       CO2 <- c(rep(CO2[1], toff), CO2)[1:slen]
     # }
+    
+    if(!is.null(freq.agg)){
+      fact.agg <- obs.day/freq.agg
+      
+      df.tmp <- data.frame(sec, Tair, Qair, Wind, Rain, pres, SW, LW, CO2)
+      time.ind <- rep(1:(slen/fact.agg), each=fact.agg)
+      
+      df.tmp <- aggregate(df.tmp, by=list(time.ind), FUN=mean)
+      
+      sec  <- df.tmp$sec
+      Tair <- df.tmp$Tair
+      Qair <- df.tmp$Qair
+      Wind <- df.tmp$Wind
+      Rain <- df.tmp$Rain
+      pres <- df.tmp$pres
+      SW   <- df.tmp$SW
+      LW   <- df.tmp$LW
+      CO2  <- df.tmp$CO2
+      
+      # Update our time indices
+      dt <- udunits2::ud.convert(nday, 'days', 'seconds') / length(sec)
+      toff <- -as.numeric(lst) * 3600 / dt
+    }
       
     if(force.sanity){
       SW[SW<0] <- 0
