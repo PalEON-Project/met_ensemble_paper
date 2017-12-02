@@ -187,6 +187,27 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     if(length(CO2) < length(Tair)){
       CO2 <- c(CO2, CO2[(length(CO2) - (length(Tair) - length(CO2)) +1 ):length(CO2)])
     }
+    
+    # # Redistributing rain to help with "constant drizzel"
+    day.ind <- seq(1, length(Rain), by=obs.day) 
+    for(i in seq_along(day.ind)){
+      if(max(Rain[day.ind[i]:(day.ind[i]+23)])==0) next # If we don't have rain, skip it
+      
+      print("redistributing Rain!")
+      # Distribute into half as many hours
+      rain.now <- Rain[day.ind[i]:(day.ind[i]+23)]
+      hrs.rain <- which(rain.now > 0)
+      
+      if(length(hrs.rain) <= 3) next 
+      rain.go <- sample(hrs.rain, length(hrs.rain)/2+1)
+      day.add <- sample(hrs.rain[!hrs.rain %in% rain.add], length(rain.go), replace=T)
+      
+      for(j in 1:length(rain.add)){
+        rain.now[day.add[j]] <- rain.now[rain.go[j]]
+        rain.now[rain.go[j]] <- 0
+      }
+      Rain[day.ind[i]:(day.ind[i]+23)] <- rain.now
+    }
 
 
     ## buffer to get to GMT
@@ -203,45 +224,45 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     # }
     
     if(!is.null(freq.agg)){
-      # fact.agg <- obs.day/freq.agg
-      # 
-      # df.tmp <- data.frame(sec, Tair, Qair, Wind, Rain, pres, SW, LW, CO2)
-      # time.ind <- rep(1:(slen/fact.agg), each=fact.agg)
-      # 
-      # df.tmp <- aggregate(df.tmp, by=list(time.ind), FUN=mean)
-      # 
-      # sec  <- df.tmp$sec
-      # Tair <- df.tmp$Tair
-      # Qair <- df.tmp$Qair
-      # Wind <- df.tmp$Wind
-      # Rain <- df.tmp$Rain
-      # pres <- df.tmp$pres
-      # SW   <- df.tmp$SW
-      # LW   <- df.tmp$LW
-      # CO2  <- df.tmp$CO2
-      # 
-      # # Update our time indices
-      # dt <- udunits2::ud.convert(nday, 'days', 'seconds') / length(sec)
-      # toff <- -as.numeric(lst) * 3600 / dt
+      fact.agg <- obs.day/freq.agg
+
+      df.tmp <- data.frame(sec, Tair, Qair, Wind, Rain, pres, SW, LW, CO2)
+      time.ind <- rep(1:(slen/fact.agg), each=fact.agg)
+
+      df.tmp <- aggregate(df.tmp, by=list(time.ind), FUN=mean)
+
+      sec  <- df.tmp$sec
+      Tair <- df.tmp$Tair
+      Qair <- df.tmp$Qair
+      Wind <- df.tmp$Wind
+      Rain <- df.tmp$Rain
+      pres <- df.tmp$pres
+      SW   <- df.tmp$SW
+      LW   <- df.tmp$LW
+      CO2  <- df.tmp$CO2
+
+      # Update our time indices
+      dt <- udunits2::ud.convert(nday, 'days', 'seconds') / length(sec)
+      toff <- -as.numeric(lst) * 3600 / dt
     }
       
     if(force.sanity){
-      # SW[SW<0] <- 0
-      # SW[SW>1500] <- 1500-1
-      # LW[LW<40] <- 40+1
-      # LW[LW>600] <- 600-1
-      # Tair[Tair<184] <- 184+1
-      # Tair[Tair>331] <- 331-1
-      # Qair[Qair<1e-6] <- 1.1e-6
-      # Qair[Qair>3.2e-2] <- 3.19e-2
-      # CO2[CO2<100] <- 100.1
-      # CO2[CO2>1100] <- 1100-1
-      # pres[pres<45000] <- 450001
-      # pres[pres>110000] <- 110000-1
-      # Rain[Rain<0] <- 0
-      # Rain[Rain>0.1111] <- 0.1110
-      # Wind[Wind<0] <- 0.01
-      # Wind[Wind>85] <- 85-1
+      SW[SW<0] <- 0
+      SW[SW>1500] <- 1500-1
+      LW[LW<40] <- 40+1
+      LW[LW>600] <- 600-1
+      Tair[Tair<184] <- 184+1
+      Tair[Tair>331] <- 331-1
+      Qair[Qair<1e-6] <- 1.1e-6
+      Qair[Qair>3.2e-2] <- 3.19e-2
+      CO2[CO2<100] <- 100.1
+      CO2[CO2>1100] <- 1100-1
+      pres[pres<45000] <- 450001
+      pres[pres>110000] <- 110000-1
+      Rain[Rain<0] <- 0
+      Rain[Rain>0.1111] <- 0.1110
+      Wind[Wind<0] <- 0.01
+      Wind[Wind>85] <- 85-1
     }
 
     ## build time variables (year, month, day of year)
@@ -359,7 +380,7 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
         pres  <- array(presA[selm], dim = dims)
         hgt   <- array(hgtA[selm], dim = dims)
         ugrd  <- array(ugrdA[selm], dim = dims)
-        sh    <- array(rep(mean(shA[selm]), length(selm)), dim = dims)
+        sh    <- array(shA[selm], dim = dims)
         tmp   <- array(tmpA[selm], dim = dims)
         # if (useCO2) {
           co2 <- array(co2A[selm], dim = dims)

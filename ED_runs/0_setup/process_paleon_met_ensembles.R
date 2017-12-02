@@ -17,7 +17,7 @@ for(i in 1:nrow(ens.list)){
                 in.prefix=ens.list[i, "EnsID"], 
                 outfolder=file.path(out.base, paste0(ens.list[i, "EnsID"], "/")), 
                 start_date="0850-01-01", end_date="0875-12-31", lst = 0, 
-                lat = NA, lon = NA, overwrite = F, verbose = FALSE,
+                lat = NA, lon = NA, overwrite = TRUE, verbose = FALSE,
                 path.co2="/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/co2/paleon_monthly_co2.nc",
                 force.sanity=TRUE, freq.agg=NULL)
   
