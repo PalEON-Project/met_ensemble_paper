@@ -187,28 +187,6 @@ met2model.ED2 <- function(in.path, in.prefix, outfolder, start_date, end_date, l
     if(length(CO2) < length(Tair)){
       CO2 <- c(CO2, CO2[(length(CO2) - (length(Tair) - length(CO2)) +1 ):length(CO2)])
     }
-    
-    # # Redistributing rain to help with "constant drizzel"
-    day.ind <- seq(1, length(Rain), by=obs.day) 
-    for(i in seq_along(day.ind)){
-      if(max(Rain[day.ind[i]:(day.ind[i]+23)])==0) next # If we don't have rain, skip it
-      
-      print("redistributing Rain!")
-      # Distribute into half as many hours
-      rain.now <- Rain[day.ind[i]:(day.ind[i]+23)]
-      hrs.rain <- which(rain.now > 0)
-      
-      if(length(hrs.rain) <= 3) next 
-      rain.go <- sample(hrs.rain, length(hrs.rain)/2+1)
-      day.add <- sample(hrs.rain[!hrs.rain %in% rain.add], length(rain.go), replace=T)
-      
-      for(j in 1:length(rain.add)){
-        rain.now[day.add[j]] <- rain.now[rain.go[j]]
-        rain.now[rain.go[j]] <- 0
-      }
-      Rain[day.ind[i]:(day.ind[i]+23)] <- rain.now
-    }
-
 
     ## buffer to get to GMT
     slen <- length(SW)
