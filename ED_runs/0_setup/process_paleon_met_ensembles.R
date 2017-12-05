@@ -6,6 +6,7 @@ ens.list
 # summary(ens.list)
 
 raw.base <- "/home/crollinson/met_ensemble/data/met_ensembles/HARVARD.v5/1hr/ensembles"
+# raw.base <- "/home/crollinson/met_ensemble/data/paleon_sites/HARVARD/NLDAS"
 out.base <- "/home/crollinson/met_ensemble_paper/ED_runs/MetEnsemble_ED"
 
 if(!dir.exists(out.base)) dir.create(out.base, recursive = T, showWarnings = F)
