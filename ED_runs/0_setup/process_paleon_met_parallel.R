@@ -22,7 +22,7 @@ source("met2model.ED2.R")
 # Set up Years as a list
 year.process <- list()
 for(i in 1:length(yrs.run)){
-  year.process[[i]] <- yrs.test[i]
+  year.process[[i]] <- yrs.run[i]
 }
 
 # Set up a function that will call met2model, but can be easily parallelized
@@ -51,5 +51,6 @@ for(i in 1:nrow(ens.list)){
                             path.co2="/home/crollinson/ED_PalEON/MIP2_Region/phase2_env_drivers_v2/co2/paleon_monthly_co2.nc", 
                             force.sanity=TRUE, freq.agg=NULL, overwrite=FALSE)
   
+  print(paste0("Finished Processing: ", ens.list$EnsID[i], " (", min(yrs.run), "-", max(yrs.run), ")"))
 }
 
