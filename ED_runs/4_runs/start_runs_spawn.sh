@@ -28,7 +28,7 @@ spin_dir=${file_base}/3_spin_finish/MetEns_spinfinish.v1/ # Directory of initial
 runs_dir=${file_base}/4_runs/MetEns_runs.v1/ # Where the transient runs will go
 setup_dir=${file_base}/0_setup/
 finalspin=2351 # The last year of the spin finish
-finalrun=3010 # The last full year of the runs
+finalrun=3015 # The last full year of the runs
 
 USER=crolli
 
@@ -125,14 +125,14 @@ do
         sed -i "s/NL%IYEARA   = .*/NL%IYEARA   = 1850/" ED2IN # Set runs start year
         sed -i "s/NL%IMONTHA  = .*/NL%IMONTHA  = 01/" ED2IN # Set runs start month
         sed -i "s/NL%IDATEA   = .*/NL%IDATEA   = 01/" ED2IN # Set runs start day
-        sed -i "s/NL%IYEARZ   = .*/NL%IYEARZ   = 3011/" ED2IN # Set runs last year
+        sed -i "s/NL%IYEARZ   = .*/NL%IYEARZ   = 3016/" ED2IN # Set runs last year
         sed -i "s/NL%IMONTHZ  = .*/NL%IMONTHZ  = 01/" ED2IN # Set runs last month
         sed -i "s/NL%IDATEZ   = .*/NL%IDATEZ   = 01/" ED2IN # Set runs last day
         sed -i "s/NL%IYEARH   = .*/NL%IYEARH   = 1850/" ED2IN # Set histo year
         sed -i "s/NL%IMONTHH  = .*/NL%IMONTHH  = 01/" ED2IN # Set histo month
         sed -i "s/NL%IDATEH   = .*/NL%IDATEH   = 01/" ED2IN # Set histo day
         sed -i "s/NL%METCYC1     =.*/NL%METCYC1     = 1850/" ED2IN # Set met start
-        sed -i "s/NL%METCYCF     =.*/NL%METCYCF     = 3010/" ED2IN # Set met end
+        sed -i "s/NL%METCYCF     =.*/NL%METCYCF     = 3015/" ED2IN # Set met end
 
 
 		# submission script changes
@@ -193,7 +193,7 @@ do
 
 		sed -i "s,/DUMMY/PATH,${file_path}/,g" cleanup_runs.sh # set the file path
 		sed -i "s/SITE=.*/SITE=${SITE}/" cleanup_runs.sh
-		sed -i "s/lastyear=.*/lastyear=3011/" cleanup_runs.sh
+		sed -i "s/lastyear=.*/lastyear=3016/" cleanup_runs.sh
 		sed -i "s,/dummy/path,${file_path},g" sub_cleanup_runs.sh # set the file path
 		sed -i "s,TEST,clean_${SITE}_runs,g" sub_cleanup_runs.sh # change job name
 
