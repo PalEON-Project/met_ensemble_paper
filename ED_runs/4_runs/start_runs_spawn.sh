@@ -21,11 +21,11 @@
 # module load hdf5/1.6.10
 
 # Define constants & file paths for the scripts
-file_base=/home/crollinson/ED_PalEON/MIP2_Region # whatever you want the base output file path to be
+file_base=/home/crollinson/met_ensemble_paper/ED_runs # whatever you want the base output file path to be
 
 ed_exec=/home/crollinson/ED2/ED/build/ed_2.1-opt # Location of the ED Executable
-spin_dir=${file_base}/3_spin_finish/phase2_spinfinish.v1/ # Directory of initial spin files
-runs_dir=${file_base}/4_runs/phase2_runs.v1/ # Where the transient runs will go
+spin_dir=${file_base}/3_spin_finish/MetEns_spinfinish.v1/ # Directory of initial spin files
+runs_dir=${file_base}/4_runs/MetEns_runs.v1/ # Where the transient runs will go
 setup_dir=${file_base}/0_setup/
 finalspin=2351 # The last year of the spin finish
 finalrun=3010 # The last full year of the runs
@@ -39,12 +39,12 @@ mkdir -p $runs_dir
 
 # Get the list of what grid cells already have at least started full runs
 pushd $runs_dir
-	file_done=(lat*)
+	file_done=(*)
 popd
 
 # Get the list of what grid cells have at least started the spin finish
 pushd $spin_dir
-	cells=(lat*)
+	cells=(*)
 popd
 
 
@@ -52,10 +52,10 @@ popd
 # not skipping any sites
 # NOTE: NEED TO COMMENT THIS PART OUT FIRST TIME THROUGH 
 #       because it doesn't like no matches in file_done
-for REMOVE in ${file_done[@]}
-do 
-	cells=(${cells[@]/$REMOVE/})
-done
+#for REMOVE in ${file_done[@]}
+#do 
+#	cells=(${cells[@]/$REMOVE/})
+#done
 
 # Filter sites that have successfully complete the spinfinish
 for SITE in ${cells[@]}
@@ -91,7 +91,7 @@ do
 		
 		# Copy the essential run files
 		cp ${spin_dir}${SITE}/ED2IN .
-		cp ${spin_dir}${SITE}/PalEON_Phase2.v1.xml .
+		cp ${spin_dir}${SITE}/PalEON_MetEns.v1.xml .
 		cp ${spin_dir}${SITE}/paleon_ed2_smp_geo.sh .
 		
 		# copy the files to automatically restart
@@ -118,7 +118,7 @@ do
 
 		# ED2IN Changes	    
 	    sed -i "s,$spin_dir,$runs_dir,g" ED2IN #change the baseline file path everywhere
-        sed -i "s/NL%EXPNME =.*/NL%EXPNME = 'PalEON Runs (Land Use off)'/" ED2IN # change the experiment name
+        sed -i "s/NL%EXPNME =.*/NL%EXPNME = 'Met Ensemble Runs'/" ED2IN # change the experiment name
         sed -i "s/NL%RUNTYPE  = 'INITIAL'.*/NL%RUNTYPE  = 'HISTORY'/" ED2IN # change from bare ground to .css/.pss run
         sed -i "s/NL%IED_INIT_MODE   = .*/NL%IED_INIT_MODE   = 5/" ED2IN # change from bare ground to .css/.pss run
         sed -i "s,SFILIN   = .*,SFILIN   = '${runs_dir}${SITE}/histo/${SITE}',g" ED2IN # set initial file path to the SAS spin folder
