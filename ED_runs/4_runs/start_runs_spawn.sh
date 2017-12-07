@@ -52,10 +52,10 @@ popd
 # not skipping any sites
 # NOTE: NEED TO COMMENT THIS PART OUT FIRST TIME THROUGH 
 #       because it doesn't like no matches in file_done
-#for REMOVE in ${file_done[@]}
-#do 
-#	cells=(${cells[@]/$REMOVE/})
-#done
+for REMOVE in ${file_done[@]}
+do 
+	cells=(${cells[@]/$REMOVE/})
+done
 
 # Filter sites that have successfully complete the spinfinish
 for SITE in ${cells[@]}
