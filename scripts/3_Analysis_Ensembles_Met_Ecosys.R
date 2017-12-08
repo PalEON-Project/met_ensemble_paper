@@ -36,20 +36,33 @@ for(ens in ens.all){
 
   
   for(yr in 1:nrow(dat.tmp)){
-    if(!file.exists(file.path(path.sipnet, ens, paste0(dat.tmp$year[yr], ".nc")))) next
-    
-    nc.eco <- ncdf4::nc_open(file.path(path.sipnet, ens, paste0(dat.tmp$year[yr], ".nc")))
-    for(v in vars.ecosys){
-      dat.tmp[yr, v] <- mean(ncdf4::ncvar_get(nc.eco, v))
+    if(file.exists(file.path(path.sipnet, ens, paste0(dat.tmp$year[yr], ".nc")))){
+      nc.eco <- ncdf4::nc_open(file.path(path.sipnet, ens, paste0(dat.tmp$year[yr], ".nc")))
+      for(v in vars.ecosys){
+        dat.tmp[yr, v] <- mean(ncdf4::ncvar_get(nc.eco, v))
+      }
+      ncdf4::nc_close(nc.eco)
+      
+    } else {
+      for(v in vars.ecosys){
+        dat.tmp[yr, v] <- NA
+      }
     }
-    ncdf4::nc_close(nc.eco)
     
-    if(!file.exists(file.path(path.met, "1hr/ensembles", GCM, ens, paste0(ens, ".", stringr::str_pad(dat.tmp$year[yr], 4, pad="0"), ".nc")))) next
-    nc.met <- ncdf4::nc_open(file.path(path.met, "1hr/ensembles", GCM, ens, paste0(ens, ".", stringr::str_pad(dat.tmp$year[yr], 4, pad="0"), ".nc")))
-    for(v in names(nc.met$var)){
-      dat.tmp[yr, v] <- mean(ncdf4::ncvar_get(nc.met, v))
+    
+    if(file.exists(file.path(path.met, "1hr/ensembles", GCM, ens, paste0(ens, ".", stringr::str_pad(dat.tmp$year[yr], 4, pad="0"), ".nc")))){
+      nc.met <- ncdf4::nc_open(file.path(path.met, "1hr/ensembles", GCM, ens, paste0(ens, ".", stringr::str_pad(dat.tmp$year[yr], 4, pad="0"), ".nc")))
+      for(v in vars.met){
+        dat.tmp[yr, v] <- mean(ncdf4::ncvar_get(nc.met, v))
+      }
+      ncdf4::nc_close(nc.met)
+      
+    } else {
+      for(v in vars.met){
+        dat.tmp[yr, v] <- NA
+      }
+      
     }
-    ncdf4::nc_close(nc.met)
     
     setTxtProgressBar(pb, pb.ind); pb.ind=pb.ind+1
   }
