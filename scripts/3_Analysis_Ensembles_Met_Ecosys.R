@@ -21,7 +21,7 @@ splice.points=c(1850, 1901, 2010)
 # path.met <- "~/Desktop/Research/met_ensembles/data/met_ensembles/HARVARD.v5/"
 # path.base <- "~/Desktop/Research/met_ensemble_paper/"
 path.met <- "~/met_ensemble/data/met_ensembles/HARVARD.v5/"
-path.base <- "~/met_ensemble"
+path.base <- "~/met_ensemble_paper"
 path.sipnet <- file.path(path.base, "SIPNET_runs")
 
 # Lets only look at the met for which we have ecosystem model simulations completed
