@@ -18,9 +18,11 @@ vars.ecosys <- c("GPP", "NPP", "NEE", "LAI", "AGB", "TotSoilCarb")
 vars.met <- c("air_temperature", "precipitation_flux", "surface_downwelling_shortwave_flux_in_air", "surface_downwelling_longwave_flux_in_air", "air_pressure", "specific_humidity", "wind_speed")
 splice.points=c(1850, 1901, 2010)
 
-path.base <- "~/Desktop/Research/met_ensemble_paper/"
+# path.met <- "~/Desktop/Research/met_ensembles/data/met_ensembles/HARVARD.v5/"
+# path.base <- "~/Desktop/Research/met_ensemble_paper/"
+path.met <- "~/met_ensemble/data/met_ensembles/HARVARD.v5/"
+path.base <- "~/met_ensemble"
 path.sipnet <- file.path(path.base, "SIPNET_runs")
-path.met <- "~/Desktop/Research/met_ensembles/data/met_ensembles/HARVARD.v5/"
 
 # Lets only look at the met for which we have ecosystem model simulations completed
 ens.all <- dir(path.sipnet) 
