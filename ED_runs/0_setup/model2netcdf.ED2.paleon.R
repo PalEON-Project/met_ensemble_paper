@@ -20,7 +20,7 @@ library(zoo)
 ## Creating a funciton that can be executed
 ## --------------------------------------------------------------
 ## --------------------------------------------------------------
-model2netcdf.ED2.paleon <- function(site, raw.dir, new.dir, sitelat, sitelon, start.run, end.run, bins) {
+model2netcdf.ED2.paleon <- function(site, raw.dir, new.dir, sitelat, sitelon, start.run, end.run) {
 
 
 ## --------------------------------------------------------------
@@ -96,37 +96,37 @@ var.names <- c("PFT", "poolname", "SoilDepth", "Fcomp", "BA", "Dens", "Mort", "A
 
 # Settting up some stuff to cycle through by year
   yrs <- sort(unique(yr)) # creating a vector with each unique year in the data list
-	
+
+  # Selecting a subset and double checking valid dates
+  start <- lubridate::year(as.Date(start.run))
+  end <- lubridate::year(as.Date(end.run))
+  
+  yrs <- yrs[yrs>=start & yrs<=end]
+
+
 # Begin Bin Loop!
-  for(y in 1:length(bins)){ # The bulk of the function loops through by year to summarize data by year
+  for(y in 1:length(yrs)){ # The bulk of the function loops through by year to summarize data by year
 
 ## ----------------
-	# Selecting a subset and double checking valid dates
-	start <- yrs[yrs==bins[y]]
-	if(y < length(bins)){
-		end <- yrs[yrs==bins[y+1]-1]
-	}else{
-		end <- as.numeric(strftime(end.run, "%Y")) 		
-	}
 		
 	# get index of cells that belong to the bin of interest
-		ysel <- which(yr>=start & yr<=end) # Set up non-overlapping bins
+		ysel <- which(yr==yrs[y]) # Set up non-overlapping bins
 
     # This flags if years are before or after the year of interest
-    if (yrs[y] < strftime(start.run, "%Y")) {
-      print(paste0(yrs[y], "<", strftime(start.run, "%Y")))
-      next
-    }
-    if (yrs[y] > strftime(end.run, "%Y")) {
-      print(paste0(yrs[y], ">", strftime(end.run, "%Y")))
-      next
-    }
+    # if (yrs[y] < strftime(start.run, "%Y")) {
+    #   print(paste0(yrs[y], "<", strftime(start.run, "%Y")))
+    #   next
+    # }
+    # if (yrs[y] > strftime(end.run, "%Y")) {
+    #   print(paste0(yrs[y], ">", strftime(end.run, "%Y")))
+    #   next
+    # }
 
 ## ----------------
     n <- length(ysel) # length of the files you're looking for
 
 	# just letting you know what year you're working on
-	print(paste0("----------  Processing Bin: ", start, " - ", end, "  ----------")) 
+	print(paste0("----------  Processing Bin: ", yrs[y], "  ----------"))
 		
 
 ## ------------------------------------ 
@@ -135,9 +135,9 @@ var.names <- c("PFT", "poolname", "SoilDepth", "Fcomp", "BA", "Dens", "Mort", "A
     
     ncT <- nc_open(file.path(raw.dir, "analy/", flist[ysel[1]])) # Opening the first hdf5 file in the output
 
-	out[[1]] <- PFTs[,2]
-	out[[2]] <- C.pools[,3]
-	out[[3]] <- getHdf5Data(ncT, "SLZ")
+  	out[[1]] <- PFTs[,2]
+  	out[[2]] <- C.pools[,3]
+  	out[[3]] <- getHdf5Data(ncT, "SLZ")
 
     nc_close(ncT)
 
@@ -430,8 +430,8 @@ names(out) <- var.names
 	## ----------------
 	## These will get printed below
     dim.t <- ncdim_def(name = "time",
-                   units = paste0("months since run start:", start.run),
-                   vals = (as.yearmon(dates)-as.yearmon(start.run))*12, # calculating the number of months in this run
+                   units = paste0("months since run start:", yrs[y]),
+                   vals = (as.yearmon(dates)-as.yearmon(yrs[y]))*12, # calculating the number of months in this run
                    calendar = "standard", unlim = TRUE)
     dim.lat <- ncdim_def("lat", "degrees_east",
                      vals =  as.numeric(sitelat),
@@ -516,7 +516,7 @@ names(out) <- var.names
     ## write NCDF File
     print(paste0("----------  Creating ncdf File  ----------")) 
 
-    yr.real <- ifelse(bins[y]-1000<1000, paste0(0, bins[y]-1000), bins[y]-1000)
+    yr.real <- ifelse(yrs[y]-1000<1000, paste0(0, yrs[y]-1000), yrs[y]-1000)
 
     nc <- nc_create(file.path(new.dir, paste(site, "ED2", yr.real, "nc", sep=".")), var)
     for(i in 1:length(var)) {
