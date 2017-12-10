@@ -1,13 +1,15 @@
 # Script to extract monthly output from ED and put it into a netcdf 
 
-mod2paleon <- "/home/crollinson/ED_PalEON/MIP2_Region/0_setup/model2netcdf.ED2.paleon.R"
+mod2paleon <- "/home/crollinson/met_ensemble_paper/ED_runs/0_setup/model2netcdf.ED2.paleon.R"
 
 source(mod2paleon, chdir = TRUE)
 
 
 site="TEST"
-sitelat <- as.numeric(substr(site,4,8)) # lat from site name
-sitelon <- as.numeric(substr(site,12,17)) # lon from site name
+#sitelat <- as.numeric(substr(site,4,8)) # lat from site name
+#sitelon <- as.numeric(substr(site,12,17)) # lon from site name
+sitelat=42.54
+sitelon=-72.18
 block.yr=100 # number of years you want to write into each file
 
 
