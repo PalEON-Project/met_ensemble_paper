@@ -222,15 +222,15 @@
       <photosyn_pathway>
                    3	      </photosyn_pathway>
       <quantum_efficiency>
-                 0.08000      </quantum_efficiency>	<!-- ED -->
+                 0.05811      </quantum_efficiency>	<!-- Ryan -->
       <stomatal_slope>
                  6.39490      </stomatal_slope>	<!-- Jackie -->
       <Vm_low_temp>
                  4.71370      </Vm_low_temp>	<!-- ED -->
       <Vm0>
-                36.00000      </Vm0>	<!-- Pecan N. Pine -->
+                36.38837      </Vm0>	<!-- Pecan N. Pine -->
       <water_conductance>
-                 0.0000457	  </water_conductance> 	<!-- Ryan * 0.01 -->
+                 0.00457	  </water_conductance> 	<!-- Ryan -->
 
 	  <!-- Radiation Params -->	
       <clumping>
@@ -334,21 +334,21 @@
       <D0>
                  0.15000      </D0>	
       <dark_respiration_factor>
-                 0.07987	  </dark_respiration_factor> <!-- Same as North Pine -->
+                 0.02029	  </dark_respiration_factor> <!-- Same as North Pine -->
       <leaf_width>
                  0.05000      </leaf_width> <!-- ED -->
       <photosyn_pathway>
                  3			  </photosyn_pathway>
       <quantum_efficiency>
-                 0.08000      </quantum_efficiency>	<!-- ED -->
+                 0.07989      </quantum_efficiency>	<!-- PEcAn -->
       <stomatal_slope>
-                 6.39490      </stomatal_slope>	<!-- Jackie -->
+                 9.02446      </stomatal_slope>	<!-- Ryan -->
       <Vm_low_temp>
                  4.71370      </Vm_low_temp> 	<!-- Jackie -->
       <Vm0>
-                36.00000      </Vm0>	<!-- Pecan N. Pine -->
+                13.62000      </Vm0>	<!-- ED2 Default -->
       <water_conductance>
-                 0.0000448	  </water_conductance> 	<!-- Ryan * 0.01 -->
+                 0.00448	  </water_conductance> 	<!-- Ryan -->
 
 	  <!-- Radiation Params -->	
       <clumping>
@@ -458,15 +458,15 @@
       <photosyn_pathway>
                    3      	  </photosyn_pathway>
       <quantum_efficiency>
-                 0.08000      </quantum_efficiency>	<!-- Jackie -->
+                 0.05778      </quantum_efficiency>	<!-- Ryan/PEcAn -->
       <stomatal_slope>
                  5.87483      </stomatal_slope>	<!-- Jackie -->
       <Vm_low_temp>
                  4.71370      </Vm_low_temp>	<!-- Jackie -->
       <Vm0>
-                56.31656	  </Vm0> <!-- Pecan -->
+                27.96089	  </Vm0> <!-- Jackie (roughly 1/2 of default) -->
       <water_conductance>
-                 0.0000497	  </water_conductance> 	<!-- Ryan * 0.01 -->
+                 0.00497	  </water_conductance> 	<!-- Ryan/Jackie -->
 
 	  <!-- Radiation Params -->	
       <clumping>
@@ -579,15 +579,15 @@
       <photosyn_pathway>
                    3      </photosyn_pathway>
       <quantum_efficiency>
-                 0.08000      </quantum_efficiency>	<!-- Jackie -->
+                 0.03959      </quantum_efficiency>	<!-- PEcAn -->
       <stomatal_slope>
                  5.72518      </stomatal_slope>	<!-- Jackie -->
       <Vm_low_temp>
                  4.71370      </Vm_low_temp> 	<!-- Ryan Kelley (Pecan) -->
       <Vm0>
-                63.96669	  </Vm0> <!-- Pecan -->
+                36.05883	  </Vm0> <!-- Pecan/Ryan -->
       <water_conductance>
-                 0.0000473	  </water_conductance> 	<!-- Ryan * 0.01 -->
+                 0.00473	  </water_conductance> 	<!-- Ryan  -->
 
 	  <!-- Radiation Params -->	
       <clumping>
@@ -692,13 +692,13 @@
       <D0>
                  0.15000      </D0>	
       <dark_respiration_factor>
-                 0.02000      </dark_respiration_factor>  <!-- ED Default -->
+                 0.03053      </dark_respiration_factor>  <!-- PEcAn/Ryan -->
       <leaf_width>
                  0.05000      </leaf_width>	<!-- Jackie -->
       <photosyn_pathway>
                    3      </photosyn_pathway>
       <quantum_efficiency>
-                 0.08000      </quantum_efficiency>	<!-- Jackie -->
+                 0.04460      </quantum_efficiency>	<!-- Ryan -->
       <stomatal_slope>
                  5.83922      </stomatal_slope>	<!-- Jackie -->
       <Vm_low_temp>
@@ -706,7 +706,7 @@
       <Vm0>
                 69.79149	  </Vm0> <!-- Pecan -->
       <water_conductance>
-                 0.0000431	  </water_conductance> 	<!-- Ryan * 0.01 -->
+                 0.00431	  </water_conductance> 	<!-- Ryan -->
 
 	  <!-- Radiation Params -->	
       <clumping>
