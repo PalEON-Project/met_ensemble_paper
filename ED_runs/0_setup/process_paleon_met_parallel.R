@@ -4,7 +4,8 @@
 ens.list <- read.csv(file = "Ensemble_Order.csv", na.strings="")
 ens.list
 
-yrs.run <- 875:2015
+ens.do <- 1:25 # Number of ensemble members to generate met for
+yrs.run <- 850:875
 cores.use <- min(8, length(yrs.run))
 # summary(ens.list)
 
@@ -15,6 +16,8 @@ out.base <- "/home/crollinson/met_ensemble_paper/ED_runs/MetEnsemble_ED"
 # out.base <- "~/Desktop/Research/met_ensemble_paper/ED_runs/MetEnsemble_ED"
 
 if(!dir.exists(out.base)) dir.create(out.base, recursive = T, showWarnings = F)
+
+ens.list <- ens.list[ens.list$Order %in% ens.do, ]
 
 # Source the pecan function & loop through the ensembles we want
 source("met2model.ED2.R")
