@@ -17,8 +17,8 @@ pdsi.nada$dataset <- as.factor("Empirical")
 summary(pdsi.nada)
 
 pdsi.ens <- read.csv(file.path(path.google, "data/HARVARD.v5/month", "PDSI_AllMembers.csv"))
-yr.ind <- data.frame(year=rep(850:2015, each=12))
-pdsi.ens.ann <- aggregate(pdsi.ens[,2:ncol(pdsi.ens)], by=list(yr.ind$year), mean)
+yr.ind <- data.frame(year=rep(850:2015, each=12), month=1:12)
+pdsi.ens.ann <- aggregate(pdsi.ens[which(yr.ind$month %in% 6:8),2:ncol(pdsi.ens)], by=list(yr.ind[which(yr.ind$month %in% 6:8), "year"]), mean)
 summary(pdsi.ens.ann)
 
 pdsi.met <- data.frame(year=850:2015)
@@ -37,7 +37,7 @@ for(dat in unique(pdsi$dataset)){
   pdsi[pdsi$dataset==dat,"upper.smooth"] <- zoo::rollapply(pdsi[pdsi$dataset==dat,"pdsi_upper"], width=fact.smooth, FUN=mean, fill=NA)
 }
 
-png(file.path(path.google, "figures", "PDSI_MetEns_v_NADA_smooth.png"), height=8, width=15, unit="in", res=220)
+png(file.path(path.google, "figures", "PDSI_MetEns_v_NADA_smooth.png"), height=7, width=15, unit="in", res=220)
 print(
   ggplot(data=pdsi) +
     geom_ribbon(aes(x=year, ymin=lower.smooth, ymax=upper.smooth, fill=dataset), alpha=0.5) +
@@ -59,14 +59,16 @@ print(
 )
 dev.off()
 
-png(file.path(path.base, "figures", "PDSI_MetEns_v_NADA.png"), height=6, width=15, unit="in", res=220)
+png(file.path(path.google, "figures", "PDSI_MetEns_v_NADA.png"), height=6, width=15, unit="in", res=220)
 print(
-  ggplot(data=pdsi) +
+  ggplot(data=pdsi[,]) +
+    geom_hline(yintercept=0, size=1.5) +
     geom_ribbon(aes(x=year, ymin=pdsi_lower, ymax=pdsi_upper, fill=dataset), alpha=0.5) +
-    geom_line(aes(x=year, y=pdsi, color=dataset), size=1.5) +
+    geom_line(aes(x=year, y=pdsi, color=dataset), size=1) +
     scale_fill_manual(name="", values=c("red3", "black")) +
     scale_color_manual(name="", values=c("red3", "black")) +
     scale_x_continuous(expand=c(0,0)) +
+    # coord_cartesian(xlim=c(1700, 1900)) +
     labs(x="Year", y="PDSI") +
     theme_bw() +
     theme(axis.text = element_text(size=rel(1.5)),
