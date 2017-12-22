@@ -186,7 +186,6 @@ var.names <- c("PFT", "poolname", "SoilDepth", "Fcomp", "BA", "Dens", "Mort", "A
       	# PFT - PFT Names; already added above: out[[1]]
 
       	# Fcomp - Fractional Composition by above ground biomass
-      	agb <- cbind(ncvar_get(ncT, 'AGB_CO')*dens.co[,1], pft, patch.co) # AGB by cohort; units: kgC/plant x plant/m2 = kgC/m2
         agb2 <- aggregate(agb[,1], by=list(agb[,2], agb[,3]), sum); names(agb2) <- c("pft", "patch", "agb") # total PFT AGB within a patch
 
         agb3 <- agb2
@@ -416,7 +415,7 @@ var.names <- c("PFT", "poolname", "SoilDepth", "Fcomp", "BA", "Dens", "Mort", "A
     rm(patch.area.co, patch.co, agb, agb2, agb3, agb4, fcomp, ba, ba2, ba3, ba.pft, dens.co, dens2, dens3, dens.pft, mort, mort2, mort3, mort.pft, Cpools, Cpools.co, dbiomass.co, dbiomass, ncohort, npatch)
     }  ## end file (month) loop 
     
-print(paste0("----------  Data organized  ----------")) 
+# print(paste0("----------  Data organized  ----------")) 
 
 names(out) <- var.names
 
@@ -514,7 +513,7 @@ names(out) <- var.names
     var[[42]] <- ncvar_def("CO2", units="ppm", dim=list(dim.t), longname="CO2 Concentration")
  
     ## write NCDF File
-    print(paste0("----------  Creating ncdf File  ----------")) 
+    # print(paste0("----------  Creating ncdf File  ----------")) 
 
     yr.real <- ifelse(yrs[y]-1000<1000, paste0(0, yrs[y]-1000), yrs[y]-1000)
 

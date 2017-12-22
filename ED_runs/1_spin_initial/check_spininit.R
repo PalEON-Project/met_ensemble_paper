@@ -38,7 +38,7 @@ init.stack$year <- 1:nrow(df.init)
 init.stack <- merge(init.stack, fcomp.stack[fcomp.stack$pft %in% paste0("X", c(5:6, 8:11)),], all=T)
 
 # ggplot(fcomp.stack[fcomp.stack$pft %in% paste0("X", c(5:6, 8:11)),]) +
-  geom_line(aes(x=year, y=values, color=pft))
+#  geom_line(aes(x=year, y=values, color=pft))
 
 ggplot(init.stack) +
   facet_wrap(~ind, scales="free_y", ncol=1) +

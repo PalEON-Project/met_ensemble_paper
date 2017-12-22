@@ -35,4 +35,5 @@ bins <- c(as.numeric(strftime(start.run, '%Y')), seq(from=as.numeric(paste0(subs
 
 print(paste0("----------  Processing Site: ", site, "  ----------")) 
   
-model2netcdf.ED2.paleon(site, site.dir, out.dir, sitelat, sitelon, start.run, end.run, bins)
+# site, raw.dir, new.dir, sitelat, sitelon, start.run, end.run
+model2netcdf.ED2.paleon(site, site.dir, out.dir, sitelat, sitelon, start.run, end.run)
