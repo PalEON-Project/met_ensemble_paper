@@ -183,57 +183,58 @@ var.names <- c("PFT", "poolname", "SoilDepth", "Fcomp", "BA", "Dens", "Mort", "A
 	  ## ----------------
 	  ## Diversity
 	  ## ----------------
-      	# PFT - PFT Names; already added above: out[[1]]
+  	# PFT - PFT Names; already added above: out[[1]]
 
-      	# Fcomp - Fractional Composition by above ground biomass
-        agb2 <- aggregate(agb[,1], by=list(agb[,2], agb[,3]), sum); names(agb2) <- c("pft", "patch", "agb") # total PFT AGB within a patch
+  	# Fcomp - Fractional Composition by above ground biomass
+  	agb <- cbind(ncvar_get(ncT, 'AGB_CO')*dens.co[,1], pft, patch.co) # AGB by cohort; units: kgC/plant x plant/m2 = kgC/m2
+    agb2 <- aggregate(agb[,1], by=list(agb[,2], agb[,3]), sum); names(agb2) <- c("pft", "patch", "agb") # total PFT AGB within a patch
 
-        agb3 <- agb2
-        for(p in unique(agb3$patch)){
-          patch.agb <- sum(agb3[agb3$patch==p, "agb"])
-          for(s in unique(agb3$pft)){
-            agb3[agb3$patch==p & agb3$pft==s, "agb"] <- agb3[agb3$patch==p & agb3$pft==s, "agb"]/patch.agb
-          }
-        }
-        agb3 <- merge(agb3, patch.area.df)
-        agb4 <- tapply(agb3$agb*agb3$area, list(agb3$pft), FUN=sum);  # relative PFT AGB within a patch; Units: fraction (unitless)
-        agb4 <- data.frame(cbind(agb4, names(agb4))); names(agb4) <- c("fcomp", "PFT") 
-        fcomp <- merge(PFTs, agb4, all.x=T, all.y=T)
+    agb3 <- agb2
+    for(p in unique(agb3$patch)){
+      patch.agb <- sum(agb3[agb3$patch==p, "agb"])
+      for(s in unique(agb3$pft)){
+        agb3[agb3$patch==p & agb3$pft==s, "agb"] <- agb3[agb3$patch==p & agb3$pft==s, "agb"]/patch.agb
+      }
+    }
+    agb3 <- merge(agb3, patch.area.df)
+    agb4 <- tapply(agb3$agb*agb3$area, list(agb3$pft), FUN=sum);  # relative PFT AGB within a patch; Units: fraction (unitless)
+    agb4 <- data.frame(cbind(agb4, names(agb4))); names(agb4) <- c("fcomp", "PFT") 
+    fcomp <- merge(PFTs, agb4, all.x=T, all.y=T)
 #         fcomp$PFT <- as.numeric(paste(fcomp$PFT)) # neccessary if reading PFT as categorical
 #         fcomp <- fcomp[ordered(as.numeric(paste(fcomp$PFT))),] # neccessary if reading PFT as categorical
-		    fcomp$fcomp <- as.numeric(paste(fcomp$fcomp))
-    		fcomp[is.na(fcomp)] <- 0   
+    fcomp$fcomp <- as.numeric(paste(fcomp$fcomp))
+		fcomp[is.na(fcomp)] <- 0   
 
-        out <- add(fcomp$fcomp,4) 
-		    
-      	# BA - Basal Area by PFT 
-        ## -- NOTE: right now the units are cm2/plant --> use nplant to get area    
-
-		    ba <- cbind(ncvar_get(ncT, 'BA_CO')*dens.co[,1], pft, patch.co) # BA by cohort; note: cm2/m2 = m2/ha
-		    ba2 <- aggregate(ba[,1], by=list(ba[,2], ba[,3]), sum); names(ba2) <- c("pft", "patch", "ba") # total PFT BA within a patch; units: m2/ha
-		    ba2 <- merge(ba2, patch.area.df)
-
-		    ba3 <- tapply(ba2$ba*ba2$area, list(ba2$pft), FUN=sum);  # PFT BA weighted by patch
-		    ba3 <- data.frame(cbind(ba3, names(ba3))); names(ba3) <- c("ba", "PFT")
-		    ba.pft <- merge(PFTs, ba3, all.x=T, all.y=T) # adding in all PFTs for record keeping
-		    ba.pft$ba <- as.numeric(paste(ba.pft$ba))
-		    ba.pft[is.na(ba.pft)] <- 0
+    out <- add(fcomp$fcomp,4) 
     
-    		out <- add(as.numeric(paste(ba.pft$ba)), 5)
+  	# BA - Basal Area by PFT 
+    ## -- NOTE: right now the units are cm2/plant --> use nplant to get area    
 
-      	# Density - Stem Density by PFT (in plants/m2)
-      	# dens.co <- data.frame(cbind(nplant*patch.area.co, pft)); colnames(dens.co) <- c("density", "pft") # done above to get ba/ha
-		 dens2 <- aggregate(dens.co[,1], by=list(dens.co[,2], dens.co[,3]), sum); names(dens2) <- c("pft", "patch", "dens") # summing by pft within patch;
-		dens2 <- merge(dens2, patch.area.df)
-		
-        dens3 <- tapply(dens2$dens*dens2$area, list(dens2$pft), FUN=sum);  # PFT BA weighted by patch; units: plants/m2
-        dens3 <- data.frame(cbind(dens3, names(dens3))); names(dens3) <- c("dens", "PFT")
-        dens.pft <- merge(PFTs, dens3, all.x=T, all.y=T) # adding in all PFTs for record keeping
-		    dens.pft$dens <- as.numeric(paste(dens.pft$dens))
-        dens.pft[is.na(dens.pft)] <- 0
-        dens.pft$dens <- dens.pft$dens*10000 # Converting from plants/m2 to plants/ha
+    ba <- cbind(ncvar_get(ncT, 'BA_CO')*dens.co[,1], pft, patch.co) # BA by cohort; note: cm2/m2 = m2/ha
+    ba2 <- aggregate(ba[,1], by=list(ba[,2], ba[,3]), sum); names(ba2) <- c("pft", "patch", "ba") # total PFT BA within a patch; units: m2/ha
+    ba2 <- merge(ba2, patch.area.df)
 
-    		out <- add(dens.pft$dens, 6)
+    ba3 <- tapply(ba2$ba*ba2$area, list(ba2$pft), FUN=sum);  # PFT BA weighted by patch
+    ba3 <- data.frame(cbind(ba3, names(ba3))); names(ba3) <- c("ba", "PFT")
+    ba.pft <- merge(PFTs, ba3, all.x=T, all.y=T) # adding in all PFTs for record keeping
+    ba.pft$ba <- as.numeric(paste(ba.pft$ba))
+    ba.pft[is.na(ba.pft)] <- 0
+
+		out <- add(as.numeric(paste(ba.pft$ba)), 5)
+
+  	# Density - Stem Density by PFT (in plants/m2)
+  	# dens.co <- data.frame(cbind(nplant*patch.area.co, pft)); colnames(dens.co) <- c("density", "pft") # done above to get ba/ha
+    dens2 <- aggregate(dens.co[,1], by=list(dens.co[,2], dens.co[,3]), sum); names(dens2) <- c("pft", "patch", "dens") # summing by pft within patch;
+    dens2 <- merge(dens2, patch.area.df)
+
+    dens3 <- tapply(dens2$dens*dens2$area, list(dens2$pft), FUN=sum);  # PFT BA weighted by patch; units: plants/m2
+    dens3 <- data.frame(cbind(dens3, names(dens3))); names(dens3) <- c("dens", "PFT")
+    dens.pft <- merge(PFTs, dens3, all.x=T, all.y=T) # adding in all PFTs for record keeping
+    dens.pft$dens <- as.numeric(paste(dens.pft$dens))
+    dens.pft[is.na(dens.pft)] <- 0
+    dens.pft$dens <- dens.pft$dens*10000 # Converting from plants/m2 to plants/ha
+
+		out <- add(dens.pft$dens, 6)
 
 	  # Establishment Rate
 
@@ -253,50 +254,50 @@ var.names <- c("PFT", "poolname", "SoilDepth", "Fcomp", "BA", "Dens", "Mort", "A
 	  ## ----------------
 	  ## Carbon Pools
 	  ## ----------------
-	  	# AGB - total aboveground biomass
-      agb2b <- aggregate(agb[,1], by=list(agb[,3]), sum); names(agb2) <- c("patch", "agb") # total PFT AGB within a patch
-      agb.total <- sum(agb2b*patch.area[patch.n>0]) # units *should* be kg/m2
-      out <- add(agb.total, 8)
+  	# AGB - total aboveground biomass
+    agb2b <- aggregate(agb[,1], by=list(agb[,3]), sum); names(agb2) <- c("patch", "agb") # total PFT AGB within a patch
+    agb.total <- sum(agb2b*patch.area[patch.n>0]) # units *should* be kg/m2
+    out <- add(agb.total, 8)
 
-	  	# CarbPools - individual soil pools; by cohort kgC/plant
-      Cpools.co <- data.frame(array(dim=c(ncohort,7))); names(Cpools.co) <- Var.ED[1:7]; Cpools.co$patch <- patch.co
-      Cpools <- vector(length=length(Var.ED)); names(Cpools) <- Var.ED
-      
-      for(p in unique(Var.ED[1:7])){
-        Cpools.co[,p] <- ncvar_get(ncT, p)*dens.co[,1] # units: kgC/plant x plants/m2 = kgC/m2
-        Cpools[p] <- sum(tapply(Cpools.co[,p], list(Cpools.co[,8]), sum)*patch.area[patch.n>0])
-      }
+  	# CarbPools - individual soil pools; by cohort kgC/plant
+    Cpools.co <- data.frame(array(dim=c(ncohort,7))); names(Cpools.co) <- Var.ED[1:7]; Cpools.co$patch <- patch.co
+    Cpools <- vector(length=length(Var.ED)); names(Cpools) <- Var.ED
+    
+    for(p in unique(Var.ED[1:7])){
+      Cpools.co[,p] <- ncvar_get(ncT, p)*dens.co[,1] # units: kgC/plant x plants/m2 = kgC/m2
+      Cpools[p] <- sum(tapply(Cpools.co[,p], list(Cpools.co[,8]), sum)*patch.area[patch.n>0])
+    }
 
-      Cpools["CWD"] <- ncvar_get(ncT, 'MMEAN_CWD_C_PY') # units: kgC/m2
-      Cpools["FAST_SOIL_C"] <- ncvar_get(ncT, 'MMEAN_FAST_SOIL_C_PY') # units: kgC/m2
-      Cpools["SLOW_SOIL_C"] <- ncvar_get(ncT, 'MMEAN_SLOW_SOIL_C_PY') # units: kgC/m2
-      Cpools["STRUCT_SOIL_C"] <- ncvar_get(ncT, 'MMEAN_STRUCT_SOIL_C_PY') # units: kgC/m2
+    Cpools["CWD"] <- ncvar_get(ncT, 'MMEAN_CWD_C_PY') # units: kgC/m2
+    Cpools["FAST_SOIL_C"] <- ncvar_get(ncT, 'MMEAN_FAST_SOIL_C_PY') # units: kgC/m2
+    Cpools["SLOW_SOIL_C"] <- ncvar_get(ncT, 'MMEAN_SLOW_SOIL_C_PY') # units: kgC/m2
+    Cpools["STRUCT_SOIL_C"] <- ncvar_get(ncT, 'MMEAN_STRUCT_SOIL_C_PY') # units: kgC/m2
 
-      out <- add(array(Cpools), 9)
-	  	
-	  	# TotLivBiom - Total living biomass (leaf + root + wood); NOTE: right now that includes storage C, but not dead (=structural wood/heartwood)
-      live <-  cbind(ncvar_get(ncT, 'BALIVE')*dens.co[,1], pft, patch.co) # AGB by cohort; units: kgC/plant x plant/m2 = kgC/m2
-      live2 <- aggregate(live[,1], by=list(live[,3]), sum); names(live2) <- c("patch", "live") # total PFT live within a patch
-      live.tot <- sum(live2*patch.area[patch.n>0])
+    out <- add(array(Cpools), 9)
+  	
+  	# TotLivBiom - Total living biomass (leaf + root + wood); NOTE: right now that includes storage C, but not dead (=structural wood/heartwood)
+    live <-  cbind(ncvar_get(ncT, 'BALIVE')*dens.co[,1], pft, patch.co) # AGB by cohort; units: kgC/plant x plant/m2 = kgC/m2
+    live2 <- aggregate(live[,1], by=list(live[,3]), sum); names(live2) <- c("patch", "live") # total PFT live within a patch
+    live.tot <- sum(live2*patch.area[patch.n>0])
 
-      out <- add(live.tot, 10) # units: kgC/m2
+    out <- add(live.tot, 10) # units: kgC/m2
 
-	  	# TotSoilCarb - total soil & litter content over entire profile
-		  out <- add(sum(Cpools[c("FAST_SOIL_C", "SLOW_SOIL_C", "STRUCT_SOIL_C")]), 11) # units: kgC/m2
-	  		  	
-	  	# poolname - names of the CarbPools; done above: out[[2]]
-	  	
-	  	# GWBI - gross woody biomass increment 
-      #     -> I'm going to go ahead and split this into DBA (= BAI cm2/plant/yr) and DAGB (AGB increment kgC/plant/yr)
-      #     -> Note: there are some pretty wonky values in DBA right now
-      dbiomass.co <- data.frame(array(dim=c(ncohort, 2))); names(dbiomass.co) <- c("DAGB_DT", "DBA_DT"); dbiomass.co$patch <- patch.co
-      
-      dbiomass.co[,"DAGB_DT"] <- ncvar_get(ncT, "DAGB_DT")*dens.co[,1]
-      dbiomass.co[,"DBA_DT"] <- ncvar_get(ncT, "DBA_DT")*dens.co[,1]
-      dbiomass <- aggregate(dbiomass.co[,c("DAGB_DT", "DBA_DT")], by=list(dbiomass.co$patch), sum); names(dbiomass) <- c("patch", "DAGB_DT", "DBA_DT")
-      
-      out <- add(sum(dbiomass["DAGB_DT"]*patch.area[patch.n>0]), 12)
-      out <- add(sum(dbiomass["DBA_DT"]*patch.area[patch.n>0]), 13)
+  	# TotSoilCarb - total soil & litter content over entire profile
+	  out <- add(sum(Cpools[c("FAST_SOIL_C", "SLOW_SOIL_C", "STRUCT_SOIL_C")]), 11) # units: kgC/m2
+  		  	
+  	# poolname - names of the CarbPools; done above: out[[2]]
+  	
+  	# GWBI - gross woody biomass increment 
+    #     -> I'm going to go ahead and split this into DBA (= BAI cm2/plant/yr) and DAGB (AGB increment kgC/plant/yr)
+    #     -> Note: there are some pretty wonky values in DBA right now
+    dbiomass.co <- data.frame(array(dim=c(ncohort, 2))); names(dbiomass.co) <- c("DAGB_DT", "DBA_DT"); dbiomass.co$patch <- patch.co
+    
+    dbiomass.co[,"DAGB_DT"] <- ncvar_get(ncT, "DAGB_DT")*dens.co[,1]
+    dbiomass.co[,"DBA_DT"] <- ncvar_get(ncT, "DBA_DT")*dens.co[,1]
+    dbiomass <- aggregate(dbiomass.co[,c("DAGB_DT", "DBA_DT")], by=list(dbiomass.co$patch), sum); names(dbiomass) <- c("patch", "DAGB_DT", "DBA_DT")
+    
+    out <- add(sum(dbiomass["DAGB_DT"]*patch.area[patch.n>0]), 12)
+    out <- add(sum(dbiomass["DBA_DT"]*patch.area[patch.n>0]), 13)
 
 
 	  ## ----------------
@@ -323,62 +324,62 @@ var.names <- c("PFT", "poolname", "SoilDepth", "Fcomp", "BA", "Dens", "Mort", "A
 	  ## ----------------
 	  ## Energy Fluxes
 	  ## ----------------
-	  	# LW_albedo - Longwave Albedo
-  		out <- add(ncvar_get(ncT, "MMEAN_RLONG_ALBEDO_PY"), 20)
+  	# LW_albedo - Longwave Albedo
+		out <- add(ncvar_get(ncT, "MMEAN_RLONG_ALBEDO_PY"), 20)
 
-	  	# SW_albedo - Shortwave Albedo 
-	  	out <- add(array(ncvar_get(ncT, "MMEAN_ALBEDO_PY")), 21)
-	  	
-	  	# LWnet - Net Longwave Radiation
-		  out <- add(array(ncvar_get(ncT, "MMEAN_ATM_RLONG_PY")-ncvar_get(ncT, "MMEAN_RLONGUP_PY")), 22) # Units: W/m2
-      # out <- add(array(ncvar_get(ncT, "MMEAN_ATM_RLONG_PY")), 22) # Units: W/m2
+  	# SW_albedo - Shortwave Albedo 
+  	out <- add(array(ncvar_get(ncT, "MMEAN_ALBEDO_PY")), 21)
+  	
+  	# LWnet - Net Longwave Radiation
+	  out <- add(array(ncvar_get(ncT, "MMEAN_ATM_RLONG_PY")-ncvar_get(ncT, "MMEAN_RLONGUP_PY")), 22) # Units: W/m2
+    # out <- add(array(ncvar_get(ncT, "MMEAN_ATM_RLONG_PY")), 22) # Units: W/m2
 
-	  	# SWnet - Net Shortwave Radiation (incoming - upgoing)
-      out <- add(array(ncvar_get(ncT, "MMEAN_ATM_RSHORT_PY")-ncvar_get(ncT, "MMEAN_RSHORTUP_PY")), 23) # Units: W/m2
-      # out <- add(array(ncvar_get(ncT, "MMEAN_ATM_RSHORT_PY")), 23) # Units: W/m2
+  	# SWnet - Net Shortwave Radiation (incoming - upgoing)
+    out <- add(array(ncvar_get(ncT, "MMEAN_ATM_RSHORT_PY")-ncvar_get(ncT, "MMEAN_RSHORTUP_PY")), 23) # Units: W/m2
+    # out <- add(array(ncvar_get(ncT, "MMEAN_ATM_RSHORT_PY")), 23) # Units: W/m2
 
-	  	# Qh - Sensible Heat -  ATM -> CAS
-	  	out <- add(ncvar_get(ncT, "MMEAN_SENSIBLE_AC_PY")*-1, 24) # Units: W/m2
-	  	
-	  	# Qle - Latent Heat = Evapotranspiration
-      out <- add(ncvar_get(ncT, "MMEAN_VAPOR_AC_PY")*(-2.26e6), 25) # units: kg/m2/s
+  	# Qh - Sensible Heat -  ATM -> CAS
+  	out <- add(ncvar_get(ncT, "MMEAN_SENSIBLE_AC_PY")*-1, 24) # Units: W/m2
+  	
+  	# Qle - Latent Heat = Evapotranspiration
+    out <- add(ncvar_get(ncT, "MMEAN_VAPOR_AC_PY")*(-2.26e6), 25) # units: kg/m2/s
 
 
 	  ## ----------------
 	  ## Other
 	  ## ----------------
-	  	# LAI - Leaf Area Index (total)
-      lai.co <- data.frame(cbind(ncvar_get(ncT, "LAI_CO"), patch.co)); names(lai.co) <- c("LAI", "patch")
-      lai <- aggregate(lai.co[,"LAI"], by=list(lai.co[,"patch"]), sum); names(lai) <- c("patch", "LAI")
-      out <- add(sum(lai[,"LAI"]*patch.area[patch.n>0]), 26)
+  	# LAI - Leaf Area Index (total)
+    lai.co <- data.frame(cbind(ncvar_get(ncT, "LAI_CO"), patch.co)); names(lai.co) <- c("LAI", "patch")
+    lai <- aggregate(lai.co[,"LAI"], by=list(lai.co[,"patch"]), sum); names(lai) <- c("patch", "LAI")
+    out <- add(sum(lai[,"LAI"]*patch.area[patch.n>0]), 26)
 
-	  	# Qs - Surface Runoff
-  		out <- add(ncvar_get(ncT, "MMEAN_RUNOFF_PY"), 27)
+  	# Qs - Surface Runoff
+		out <- add(ncvar_get(ncT, "MMEAN_RUNOFF_PY"), 27)
 
-	  	# Qsb - Subsurface Runoff (drainage + lateral flow); no lateralflow found
-	  	out <- add(ncvar_get(ncT, "MMEAN_DRAINAGE_PY"), 28)
+  	# Qsb - Subsurface Runoff (drainage + lateral flow); no lateralflow found
+  	out <- add(ncvar_get(ncT, "MMEAN_DRAINAGE_PY"), 28)
 
-	  	# Evap - Total Evaporation
-		  out <- add(sum(ncvar_get(ncT, "MMEAN_VAPOR_GC_PY"), ncvar_get(ncT, "MMEAN_VAPOR_LC_PY"), ncvar_get(ncT, "MMEAN_VAPOR_WC_PY"))*(-1), 29) # units: kg/m2/s
+  	# Evap - Total Evaporation
+	  out <- add(sum(ncvar_get(ncT, "MMEAN_VAPOR_GC_PY"), ncvar_get(ncT, "MMEAN_VAPOR_LC_PY"), ncvar_get(ncT, "MMEAN_VAPOR_WC_PY"))*(-1), 29) # units: kg/m2/s
 
-	  	# Transp - Total Transpriation
-  		out <- add(ncvar_get(ncT, "MMEAN_TRANSP_PY"), 30) # Units: kg/m2/s
+  	# Transp - Total Transpriation
+		out <- add(ncvar_get(ncT, "MMEAN_TRANSP_PY"), 30) # Units: kg/m2/s
 
-	  	# SnowDepth - Total snow depth --> SFCW_DEPTH
-      # Supplementing SFCW Depth (snow + water)
-	  	out <- add(ncvar_get(ncT, "MMEAN_SFCW_DEPTH_PY"), 31) # units: m
+  	# SnowDepth - Total snow depth --> SFCW_DEPTH
+    # Supplementing SFCW Depth (snow + water)
+  	out <- add(ncvar_get(ncT, "MMEAN_SFCW_DEPTH_PY"), 31) # units: m
 
-	  	# SWE - Snow Water Equivalent 
-      #   --> Suplementing SFCW MASS 
-		  out <- add(ncvar_get(ncT, "MMEAN_SFCW_MASS_PY"), 32) # units: kg/m2
+  	# SWE - Snow Water Equivalent 
+    #   --> Suplementing SFCW MASS 
+	  out <- add(ncvar_get(ncT, "MMEAN_SFCW_MASS_PY"), 32) # units: kg/m2
 
-	  	# SoilMoist - Soil Moisture
-		  out <- add(ncvar_get(ncT, "MMEAN_SOIL_WATER_PY")*100, 33) # units: m3/m3 * 100 kg/m3
+  	# SoilMoist - Soil Moisture
+	  out <- add(ncvar_get(ncT, "MMEAN_SOIL_WATER_PY")*100, 33) # units: m3/m3 * 100 kg/m3
 
-	  	# SoilTemp - Soil Temperature
-		  out <- add(ncvar_get(ncT, "MMEAN_SOIL_TEMP_PY"), 34) # units: K
+  	# SoilTemp - Soil Temperature
+	  out <- add(ncvar_get(ncT, "MMEAN_SOIL_TEMP_PY"), 34) # units: K
 
-	  	# SoilDepth - Soil Layer Depths - done above: out[[3]]
+  	# SoilDepth - Soil Layer Depths - done above: out[[3]]
 	  
 
 	  ## ----------------
