@@ -12,7 +12,9 @@
 ##' @name model2netcdf.ED2
 ##' @title Code to convert ED2's -T- HDF5 output into netCDF format
 ##'
-##' @param outdir Location of ED model output
+##' @param rawdir Location of ED model output
+##' @param savedir Location to save model output
+##' @param type Type of output to extract; T = Tower, E = monthly, Y = Yearly
 ##' @param sitelat Latitude of the site
 ##' @param sitelon Longitude of the site
 ##' @param start_date Start time of the simulation
@@ -20,12 +22,18 @@
 ##' @export
 ##'
 ##' @author Michael Dietze, Shawn Serbin, Rob Kooper, Toni Viskari, Istem Fer
-## modified M. Dietze 07/08/12 modified S. Serbin 05/06/13
-model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
+## modified M. Dietze 07/08/12 modified S. Serbin 05/06/13; modified CR 12/19/17
+model2netcdf.ED2 <- function(rawdir, savedir, type="E", sitelat, sitelon, start_date, end_date) {
 
-  flist <- dir(outdir, "-T-")
+  # Setting up the appropriate variable prefixes
+  if(type=="T") prefix = "FMEAN"
+  if(type=="E") prefix = "MMEAN"
+  if(type=="Y") prefix = ""
+  
+  type=paste0("-", type, "-")
+  flist <- dir(rawdir, type)
   if (length(flist) == 0) {
-    print(paste("*** WARNING: No tower output for :", outdir))
+    print(paste("*** WARNING: No output for type", type, "for :", rawdir))
     return(NULL)
   }
 
@@ -34,12 +42,20 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
   for (i in seq_along(flist)) {
     ## tmp <- sub(run.id,"",flist[i])  # Edited by SPS
     ## tmp <- sub("-T-","",tmp)        # Edited by SPS
-    index <- gregexpr("-T-", flist[i])[[1]]
+    index <- gregexpr(type, flist[i])[[1]]
     index <- index[1]
     yr[i] <- as.numeric(substr(flist[i], index + 3, index + 6))
     ## yr[i] <- as.numeric(substr(tmp,1,4)) # Edited by SPS
   }
 
+  days_in_year <- function(year) {
+    if (any(year %% 1 != 0)) {
+      # PEcAn.logger::logger.severe("Year must be integer. Given ", year, '.')
+      stop("Year must be integer. Given ", year, '.')
+    }
+    ifelse(lubridate::leap_year(year), yes = 366, no = 365)
+  }
+  
   add <- function(dat, col, row, year) {
     ## data is always given for whole year, except it will start always at 0
     ## the left over data is filled with 0's
@@ -61,13 +77,13 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
           out[[col]] <- array(dat, dim = (end - start))
         } else {
           if (start != 0) {
-            PEcAn.logger::logger.warn("start date is not 0 this year, but data already exists in this col",
-                        col, "how is this possible?")
+            warning(paste("start date is not 0 this year, but data already exists in this col",
+                        col, "how is this possible?"))
           }
           out[[col]] <- abind::abind(out[[col]], array(dat, dim = (end - start)), along = 1)
         }
       } else {
-        PEcAn.logger::logger.warn("expected a single value")
+        warning("expected a single value")
       }
     } else if (length(dims) == 1) {
       dat <- dat[1:(end - start)]
@@ -75,8 +91,8 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
         out[[col]] <- dat
       } else {
         if (start != 0) {
-          PEcAn.logger::logger.warn("start date is not 0 this year, but data already exists in this col",
-                      col, "how is this possible?")
+          warning(paste("start date is not 0 this year, but data already exists in this col",
+                      col, "how is this possible?"))
         }
         out[[col]] <- abind::abind(out[[col]], dat, along = 1)
       }
@@ -88,19 +104,19 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
         out[[col]] <- dat
       } else {
         if (start != 0) {
-          PEcAn.logger::logger.warn("start date is not 0 this year, but data already exists in this col",
-                      col, "how is this possible?")
+          warning(paste("start date is not 0 this year, but data already exists in this col",
+                      col, "how is this possible?"))
         }
         out[[col]] <- abind::abind(out[[col]], dat, along = 1)
       }
     } else {
-      PEcAn.logger::logger.debug("-------------------------------------------------------------")
-      PEcAn.logger::logger.debug("col=", col)
-      PEcAn.logger::logger.debug("length=", length(dat))
-      PEcAn.logger::logger.debug("start=", start)
-      PEcAn.logger::logger.debug("end=", end)
-      PEcAn.logger::logger.debug("dims=", dims)
-      PEcAn.logger::logger.warn("Don't know how to handle larger arrays yet.")
+      # PEcAn.logger::logger.debug("-------------------------------------------------------------")
+      # PEcAn.logger::logger.debug("col=", col)
+      # PEcAn.logger::logger.debug("length=", length(dat))
+      # PEcAn.logger::logger.debug("start=", start)
+      # PEcAn.logger::logger.debug("end=", end)
+      # PEcAn.logger::logger.debug("dims=", dims)
+      warning("Don't know how to handle larger arrays yet.")
     }
 
     ## finally make sure we use -999 for invalid values
@@ -114,13 +130,13 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
     if (var %in% names(nc$var)) {
       return(ncdf4::ncvar_get(nc, var))
     } else {
-      PEcAn.logger::logger.warn("Could not find", var, "in ed hdf5 output.")
+      warning()("Could not find", var, "in ed hdf5 output.")
       return(-999)
     }
   }
 
   CheckED2Version <- function(nc) {
-    if ("FMEAN_BDEAD_PY" %in% names(nc$var)) {
+    if (paste0(prefix, "_BDEAD_PY") %in% names(nc$var) | "BDEAD_PY" %in% names(nc$var)) {
       return("Git")
     }
   }
@@ -152,23 +168,21 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
     n <- length(ysel)
     out <- list()
     ## prevTime <- NULL print(y)
-    #print(paste("----- Processing year: ", yrs[y]))
-    PEcAn.logger::logger.info(paste0("----- Processing year: ",yrs[y]))
+    print(paste("----- Processing year: ", yrs[y]))
+    # PEcAn.logger::logger.info(paste0("----- Processing year: ",yrs[y]))
     ## if(haveTime) prevTime <- progressBar()
     row <- 1
     for (i in ysel) {
-      ncT <- ncdf4::nc_open(file.path(outdir, flist[i]))
+      ncT <- ncdf4::nc_open(file.path(rawdir, flist[i]))
       ## determine timestep from HDF5 file
-      diy <- PEcAn.utils::days_in_year(yrs[y])
+      diy <- days_in_year(yrs[y])
       block <- ncT$dim$phony_dim_0$len / diy
-      PEcAn.logger::logger.info(paste0("Output interval: ", 86400/block, " sec"))
+      # PEcAn.logger::logger.info(paste0("Output interval: ", 86400/block, " sec"))
       ##
-      if (file.exists(file.path(outdir, sub("-T-", "-Y-", flist[i])))) {
-        ncY <- ncdf4::nc_open(file.path(outdir, sub("-T-", "-Y-", flist[i])))
-        slzdata <- getHdf5Data(ncY, "SLZ")
-        ncdf4::nc_close(ncY)
+      if ("SLZ" %in% names(ncT$var)) {
+        slzdata <- getHdf5Data(ncT, "SLZ")
       } else {
-        PEcAn.logger::logger.warn("Could not find SLZ in Y file, making a crude assumpution.")
+        warning("Could not find SLZ in Y file, making a crude assumpution.")
         slzdata <- array(c(-2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, -0.1, -0.05))
       }
 
@@ -181,18 +195,18 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
 
       if (!is.null(ED2vc)) {
         ## out <- add(getHdf5Data(ncT, 'TOTAL_AGB,1,row, yrs[y]) ## AbvGrndWood
-        out <- add(getHdf5Data(ncT, "FMEAN_BDEAD_PY"), 1, row, yrs[y])  ## AbvGrndWood
-        out <- add(getHdf5Data(ncT, "FMEAN_PLRESP_PY"), 2, row, yrs[y])  ## AutoResp
+        # out <- add(getHdf5Data(ncT, paste0(prefix, "_BDEAD_PY")), 1, row, yrs[y])  ## AbvGrndWood
+        out <- add(getHdf5Data(ncT, paste0(prefix, "_PLRESP_PY")), 2, row, yrs[y])  ## AutoResp
         out <- add(-999, 3, row, yrs[y])  ## CarbPools
-        out <- add(getHdf5Data(ncT, "FMEAN_CAN_CO2_PY"), 4, row, yrs[y])  ## CO2CAS
+        out <- add(getHdf5Data(ncT,  paste0(prefix, "_CAN_CO2_PY")), 4, row, yrs[y])  ## CO2CAS
         out <- add(-999, 5, row, yrs[y])  ## CropYield
-        out <- add(getHdf5Data(ncT, "FMEAN_GPP_PY"), 6, row, yrs[y])  ## GPP
-        out <- add(getHdf5Data(ncT, "FMEAN_RH_PY"), 7, row, yrs[y])  ## HeteroResp
-        out <- add(-getHdf5Data(ncT, "FMEAN_GPP_PY") + getHdf5Data(ncT, "FMEAN_PLRESP_PY") +
-                     getHdf5Data(ncT, "FMEAN_RH_PY"), 8, row, yrs[y])  ## NEE
-        out <- add(getHdf5Data(ncT, "FMEAN_GPP_PY") - getHdf5Data(ncT, "FMEAN_PLRESP_PY"),
+        out <- add(getHdf5Data(ncT, paste0(prefix, "_GPP_PY")), 6, row, yrs[y])  ## GPP
+        out <- add(getHdf5Data(ncT, paste0(prefix, "_RH_PY")), 7, row, yrs[y])  ## HeteroResp
+        out <- add(-getHdf5Data(ncT, paste0(prefix, "_GPP_PY")) + getHdf5Data(ncT, paste0(prefix, "_PLRESP_PY")) +
+                     getHdf5Data(ncT, paste0(prefix, "_RH_PY")), 8, row, yrs[y])  ## NEE
+        out <- add(getHdf5Data(ncT, paste0(prefix, "_GPP_PY")) - getHdf5Data(ncT, paste0(prefix, "_PLRESP_PY")),
                    9, row, yrs[y])  ## NPP
-        out <- add(getHdf5Data(ncT, "FMEAN_RH_PY") + getHdf5Data(ncT, "FMEAN_PLRESP_PY"),
+        out <- add(getHdf5Data(ncT, paste0(prefix, "_RH_PY")) + getHdf5Data(ncT, paste0(prefix, "_PLRESP_PY")),
                    10, row, yrs[y])  ## TotalResp
         ## out <- add(getHdf5Data(ncT, 'BDEAD + getHdf5Data(ncT, 'BALIVE,11,row, yrs[y]) ## TotLivBiom
         out <- add(-999, 11, row, yrs[y])  ## TotLivBiom
@@ -599,8 +613,8 @@ model2netcdf.ED2 <- function(outdir, sitelat, sitelon, start_date, end_date) {
                                      longname = "Soil Respiration")
 
     ## write ALMA
-    nc <- ncdf4::nc_create(file.path(outdir, paste(yrs[y], "nc", sep = ".")), nc_var)
-    varfile <- file(file.path(outdir, paste(yrs[y], "nc", "var", sep = ".")), "w")
+    nc <- ncdf4::nc_create(file.path(rawdir, paste(yrs[y], "nc", sep = ".")), nc_var)
+    varfile <- file(file.path(rawdir, paste(yrs[y], "nc", "var", sep = ".")), "w")
     for (i in seq_along(nc_var)) {
       ncdf4::ncvar_put(nc, nc_var[[i]], out[[i]])
       cat(paste(nc_var[[i]]$name, nc_var[[i]]$longname), file = varfile, sep = "\n")
