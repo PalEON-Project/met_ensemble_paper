@@ -6,3 +6,7 @@ data/
 SIPNET_runs/
 
 *.png
+
+ED_runs/*/MetEns_*.v1/
+
+

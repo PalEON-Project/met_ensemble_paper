@@ -194,7 +194,7 @@
       <mort1>
                  1.00000      </mort1>
       <mort2>
-                20.00000     </mort2> <!-- ED -->
+                40.00000     </mort2> <!-- Ryan/PEcAn = less stress tolerant  -->
       <mort3>
                  0.00339      </mort3>
       <plant_min_temp>
@@ -212,13 +212,13 @@
 
 	  <!-- Photosynthesis Params -->	
       <cuticular_cond>
-              1000.0000      </cuticular_cond>	<!--  ED Default -->
+              4426.97974      </cuticular_cond>	<!--  Ryan/Pecan (South Pine) -->
       <D0>
-                 0.15000      </D0>	
+                 0.01000      </D0>	
       <dark_respiration_factor>
                  0.02029      </dark_respiration_factor> 	<!-- Ryan Kelly/Pecan (South Pine) -->
       <leaf_width>
-                 0.05000      </leaf_width> <!-- ED -->
+                 0.09988      </leaf_width> <!-- Ryan Kelly/Pecan (South Pine) -->
       <photosyn_pathway>
                    3	      </photosyn_pathway>
       <quantum_efficiency>
@@ -313,7 +313,7 @@
       <mort1>
                  1.00000      </mort1>
       <mort2>
-                20.00000     </mort2> <!-- ED -->
+                19.00000     </mort2> <!-- Fudged to be a bit more stress tolerant -->
       <mort3>
                  0.00236      </mort3>
       <plant_min_temp>
@@ -330,13 +330,13 @@
 
 	  <!-- Photosynthesis Params -->	
       <cuticular_cond>
-              1000.0000      </cuticular_cond>	<!--  ED Default -->
+              4426.97974      </cuticular_cond>	<!--  Ryan/Pecan (South Pine) -->
       <D0>
-                 0.15000      </D0>	
+                 0.01000      </D0>	
       <dark_respiration_factor>
                  0.02029	  </dark_respiration_factor> <!-- Same as North Pine -->
       <leaf_width>
-                 0.05000      </leaf_width> <!-- ED -->
+                 0.10181      </leaf_width> <!-- Ryan/Pecan -->
       <photosyn_pathway>
                  3			  </photosyn_pathway>
       <quantum_efficiency>
@@ -430,7 +430,7 @@
       <mort1>
                   1.0000      </mort1>	<!-- ED Default -->
       <mort2>
-                 20.0000     </mort2> <!-- ED Default -->
+                40.00000     </mort2> <!-- Ryan/PEcAn = less stress tolerant  -->
       <mort3>
                  0.00614      </mort3> <!-- ED Default -->
       <plant_min_temp>
@@ -450,11 +450,11 @@
       <cuticular_cond>
              10000.00000      </cuticular_cond> 	<!-- ED Default -->
       <D0>
-                 0.15000      </D0>	
+                 0.01000      </D0>	
       <dark_respiration_factor>
                  0.01913      </dark_respiration_factor>  <!-- Pecan -->
       <leaf_width>
-                 0.05000      </leaf_width>	<!-- Jackie -->
+                 0.10101      </leaf_width>	<!-- Ryan/PEcAn -->
       <photosyn_pathway>
                    3      	  </photosyn_pathway>
       <quantum_efficiency>
@@ -551,7 +551,7 @@
       <mort1>
                  1.00000      </mort1> <!-- ED Default -->
       <mort2>
-                20.00000      </mort2> <!-- ED -->
+                19.50000      </mort2> <!-- Fudged to be a little more stress tolerant -->
       <mort3>
                  0.00381      </mort3> <!-- ED Default -->
       <plant_min_temp>
@@ -571,11 +571,11 @@
       <cuticular_cond>
              10000.00000      </cuticular_cond> 	<!-- ED Default -->
       <D0>
-                 0.15000      </D0>	
+                 0.01000      </D0>	
       <dark_respiration_factor>
                  0.01204      </dark_respiration_factor>  <!-- ED -->
       <leaf_width>
-                 0.05000      </leaf_width>	<!-- Jackie -->
+                 0.03850      </leaf_width>	<!-- Ryan/Pecan -->
       <photosyn_pathway>
                    3      </photosyn_pathway>
       <quantum_efficiency>
@@ -670,7 +670,7 @@
       <mort1>
                  1.0000      </mort1> <!-- Ed Default -->
       <mort2>
-                20.00000     </mort2> <!-- ED -->
+                19.00000     </mort2> <!-- Fudged to be even more stress tolerant -->
       <mort3>
                  0.00428      </mort3> <!-- Ed Default -->
       <plant_min_temp>
@@ -690,11 +690,11 @@
       <cuticular_cond>
              10000.00000      </cuticular_cond> 	<!-- Jackie -->
       <D0>
-                 0.15000      </D0>	
+                 0.01000      </D0>	
       <dark_respiration_factor>
                  0.03053      </dark_respiration_factor>  <!-- PEcAn/Ryan -->
       <leaf_width>
-                 0.05000      </leaf_width>	<!-- Jackie -->
+                 0.08735      </leaf_width>	<!-- Ryan/PEcAn -->
       <photosyn_pathway>
                    3      </photosyn_pathway>
       <quantum_efficiency>
