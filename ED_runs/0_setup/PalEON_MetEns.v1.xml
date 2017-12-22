@@ -228,7 +228,7 @@
       <Vm_low_temp>
                  4.71370      </Vm_low_temp>	<!-- ED -->
       <Vm0>
-                36.38837      </Vm0>	<!-- Pecan N. Pine -->
+                11.35         </Vm0>	<!-- Jackie-->
       <water_conductance>
                  0.00457	  </water_conductance> 	<!-- Ryan -->
 
@@ -346,7 +346,7 @@
       <Vm_low_temp>
                  4.71370      </Vm_low_temp> 	<!-- Jackie -->
       <Vm0>
-                13.62000      </Vm0>	<!-- ED2 Default -->
+                4.54000       </Vm0>	<!-- Jackie -->
       <water_conductance>
                  0.00448	  </water_conductance> 	<!-- Ryan -->
 
@@ -672,7 +672,7 @@
       <mort2>
                 19.00000     </mort2> <!-- Fudged to be even more stress tolerant -->
       <mort3>
-                 0.00428      </mort3> <!-- Ed Default -->
+                 0.00300      </mort3> <!-- Between mid hardwood & late conifer -->
       <plant_min_temp>
                193.00000      </plant_min_temp>	<!-- Modified -->
       <seedling_mortality>
