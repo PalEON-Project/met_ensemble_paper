@@ -12,3 +12,5 @@ ED_runs/*/MetEns_*.v1/
 
 
 *.xlsx
+
+.DS_Store
